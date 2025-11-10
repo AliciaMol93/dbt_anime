@@ -1,0 +1,14 @@
+models:
+  - name: stg_anime__details
+    description: "Cleaned and standardized anime details data."
+    columns:
+      - name: anime_id
+        tests:
+          - unique
+          - not_null
+      - name: score
+        tests:
+          - not_null
+          - accepted_range:
+              min_value: 0
+              max_value: 10
