@@ -1,0 +1,222 @@
+sources:
+  - name: anime_source # name of the source
+    schema: anime # this is the schema our raw data lives in
+    database: ANIME_BRONZE # this is the name of our database
+
+    quoting:
+      database: false
+      schema: false
+      identifier: false
+
+    freshness:
+      warn_after: { count: 1, period: day }
+      error_after: { count: 3, period: day }
+
+    tables:
+      - name: DETAILS
+        columns:
+          - name: MAL_ID
+            description: Unique identifier for the anime
+            tests:
+              - unique
+              - not_null
+
+          - name: TITLE
+            description: Name of the anime on the platform
+
+          - name: TITLE_JAPANESE
+            description: Name of the anime in Japanese
+
+          - name: URL
+            description: URL of the anime
+
+          - name: IMAGE_URL
+            description: URL of the anime's image
+
+          - name: TYPE
+            description: Type of anime (e.g., TV, Movie)
+
+          - name: STATUS
+            description: Current status of the anime (e.g., airing, completed)
+
+          - name: RANK
+            description: Rank of the anime
+
+          - name: SCORE
+            description: Average score
+
+          - name: SCORED_BY
+            description: Number of people who scored
+
+          - name: SYNOPSIS
+            description: Short summary
+
+          - name: YEAR
+            description: Release year
+
+          - name: POPULARITY
+            description: Popularity score
+
+          - name: MEMBERS
+            description: Number of members
+
+          - name: FAVORITES
+            description: Number of favorites
+
+          - name: DEMOGRAPHICS
+            description: Demographic targeting
+
+          - name: EPISODES
+            description: Number of episodes
+
+          - name: SEASON
+            description: Season of release
+
+      - name: FAVS
+        columns:
+          - name: USERNAME
+            description: Username of the user marking the favorite.
+
+          - name: FAV_TYPE
+            description: Type of favorite (character, anime, people).
+
+          - name: ID
+            description: Identifier of the favorite entity.
+            tests:
+              - unique
+              - not_null
+
+      - name: PERSON_ANIME_WORKS
+        columns:
+          - name: PERSON_MAL_ID
+            description: ID of the person (MyAnimeList).
+
+          - name: POSITION
+            description: Role or position in the anime work (e.g., theme song performance).
+
+          - name: ANIME_MAL_ID
+            description: ID of the anime (MyAnimeList) linked to the person.
+            tests:
+              - unique
+              - not_null
+
+      - name: PERSON_DETAILS
+        columns:
+          - name: PERSON_MAL_ID
+            description: ID of the person (MyAnimeList).
+            tests:
+              - unique
+              - not_null
+
+          - name: NAME
+            description: Name of the person.
+
+          - name: GIVEN_NAME
+            description: Given/first name of the person.
+
+          - name: FAMILY_NAME
+            description: Family/last name of the person.
+
+          - name: URL
+            description: Profile URL.
+
+          - name: IMAGE_URL
+            description: Image URL.
+
+          - name: WEBSITE_URL
+            description: Personal/external website URL.
+
+          - name: BIRTHDAY
+            description: Birthday (date or timestamp).
+
+          - name: FAVORITES
+            description: Number of favorite markings for the person.
+
+          - name: ABOUT
+            description: Biographical or description info.
+
+      - name: STATS
+        columns:
+          - name: MAL_ID
+            description: Anime unique identifier (MyAnimeList).
+            tests:
+              - unique
+              - not_null
+
+          - name: COMPLETED
+            description: Number of users who completed the anime.
+
+          - name: DROPPED
+            description: Number of users who dropped the anime.
+
+          - name: ON_HOLD
+            description: Number of users on hold.
+
+          - name: PLAN_TO_WATCH
+            description: Number of users who plan to watch.
+
+          - name: TOTAL
+            description: Total number of user entries.
+
+          - name: WATCHING
+            description: Number currently watching.
+
+          - name: SCORE_1_VOTES
+            description: Votes with score 1.
+
+          - name: SCORE_1_PERCENTAGE
+            description: Percentage of total votes for score 1.
+
+          - name: SCORE_2_VOTES
+            description: Votes with score 2.
+
+          - name: SCORE_2_PERCENTAGE
+            description: Percentage for score 2.
+
+          - name: SCORE_3_VOTES
+            description: Votes with score 3.
+
+          - name: SCORE_3_PERCENTAGE
+            description: Percentage for score 3.
+
+          - name: SCORE_4_VOTES
+            description: Votes with score 4.
+
+          - name: SCORE_4_PERCENTAGE
+            description: Percentage for score 4.
+
+          - name: SCORE_5_VOTES
+            description: Votes with score 5.
+
+          - name: SCORE_5_PERCENTAGE
+            description: Percentage for score 5.
+
+          - name: SCORE_6_VOTES
+            description: Votes with score 6.
+
+          - name: SCORE_6_PERCENTAGE
+            description: Percentage for score 6.
+
+          - name: SCORE_7_VOTES
+            description: Votes with score 7.
+
+          - name: SCORE_7_PERCENTAGE
+            description: Percentage for score 7.
+
+          - name: SCORE_8_VOTES
+            description: Votes with score 8.
+
+          - name: SCORE_8_PERCENTAGE
+            description: Percentage for score 8.
+
+          - name: SCORE_9_VOTES
+            description: Votes with score 9.
+
+          - name: SCORE_9_PERCENTAGE
+            description: Percentage for score 9.
+
+          - name: SCORE_10_VOTES
+            description: Votes with score 10.
+            
+          - name: SCORE_10_PERCENTAGE
+            description: Percentage for score 10.
