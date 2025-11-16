@@ -8,21 +8,12 @@
 
 with details_clean as (
     select
-        -- CORRECCIÓN: Usar la macro con el prefijo y el nombre correctos
-        -- Usar 'mal_id' como clave natural es suficiente si es único
-        {{ dbt_utils.generate_surrogate_key(['mal_id']) }} as anime_id,
-
-        -- Conservamos mal_id como clave natural
-        mal_id, 
-
-        -- Limpieza de títulos
-        nullif(lower(regexp_replace(trim(title), '^[\s\.\-\d:]+', '')), '') as title,
-        nullif(lower(regexp_replace(trim(title_japanese), '^[\s\.\-\d:]+', '')), '') as title_japanese,
+        {{ surrogate_key(['mal_id']) }} as anime_id,
+        nullif(lower(ltrim(title)), '') as title,
+        nullif(lower(ltrim(title_japanese)), '') as title_japanese,
 
         lower(trim(type)) as type,
         lower(trim(status)) as status,
-
-        -- Métricas
         rank,
         score,
         scored_by,
@@ -31,20 +22,10 @@ with details_clean as (
         favorites,
         episodes,
         year,
-
-        -- Atributos Varchar
         trim(season) as season,
         trim(source) as source,
         trim(rating) as rating,
         trim(demographics) as demographics,
-
-        -- Columnas Array/JSON (se mantienen como están para las dimensiones/relaciones)
-        trim(genres) as genres,
-        trim(themes) as themes,
-        trim(studios) as studios,
-        trim(producers) as producers,
-        trim(licensors) as licensors,
-        trim(streaming) as streaming,
 
         -- URLs válidas (Snowflake/Data Warehouse SQL)
         case when url rlike '^https?://[^\s]+$' then url else null end as url,
@@ -56,7 +37,7 @@ with details_clean as (
         start_date,
         end_date,
 
-        current_timestamp() as ingestion_ts -- Marca de tiempo para deduplicación/auditoría
+        current_timestamp() as ingestion_ts 
 
     from {{ source("anime_source", "DETAILS") }}
 ),
@@ -72,7 +53,6 @@ dedup as (
 final_records as (
     select
         anime_id,
-        mal_id, -- Incluimos la clave natural
         title,
         title_japanese,
         type,
@@ -89,12 +69,6 @@ final_records as (
         source,
         rating,
         demographics,
-        genres,
-        themes,
-        studios,
-        producers,
-        licensors,
-        streaming,
         url,
         image_url,
         synopsis,

@@ -22,10 +22,10 @@ SELECT
     t1.anime_id,
     
     -- Generar la clave foránea del género
-    {{ dbt_utils.generate_surrogate_key(['t1.genre_name_raw']) }} as genre_id,
+    {{ surrogate_key(['t1.genre_name_raw']) }} as genre_id,
     
     -- Clave primaria compuesta para unicidad
-    {{ dbt_utils.generate_surrogate_key(['t1.anime_id', 't1.genre_name_raw']) }} as anime_genre_key 
+    {{ surrogate_key(['t1.anime_id', 't1.genre_name_raw']) }} as anime_genre_key 
 
 FROM unnested_genres t1
 
