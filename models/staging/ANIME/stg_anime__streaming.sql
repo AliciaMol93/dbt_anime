@@ -11,30 +11,27 @@ with unnested_streaming as (
     select
         -- La columna 'value' contiene la plataforma individual después del FLATTEN
         lower(trim(f.value::string)) as streaming_name_raw 
-    from {{ ref('stg_anime__details') }} a,
-    
-    -- Usamos PARSE_JSON() para convertir el VARCHAR en un ARRAY/VARIANT
+    from {{ source('anime_source', 'DETAILS') }} a,
     lateral flatten(input => PARSE_JSON(a.streaming)) f
-    
-    -- Excluir los nulos y los arrays vacíos después del desanidamiento
     where a.streaming is not null
       and f.value::string <> '[]'
       and f.value::string is not null
 ),
 
 -- CTE 2: Identificar los valores únicos y generar la clave subrogada
--- (El resto del modelo SCD Tipo 1 es idéntico al anterior)
+
 distinct_streaming as (
     select distinct
-        {{ dbt_utils.generate_surrogate_key(['streaming_name_raw']) }} as streaming_id,
+        {{ surrogate_key(['streaming_name_raw']) }} as streaming_id,
         streaming_name_raw as streaming_name
     from unnested_streaming
     where streaming_name_raw is not null
-),
+)
 
 {% if is_incremental() %}
 
-final_streaming as (
+
+,final_streaming as (
     select
         t1.streaming_id,
         t1.streaming_name
@@ -44,7 +41,6 @@ final_streaming as (
         on t1.streaming_id = t2.streaming_id
 
     where t2.streaming_id is null
-)
 
 select * from final_streaming
 

@@ -5,14 +5,13 @@
 
 with unnested_streaming as (
     SELECT
-        anime.anime_id,        
-        -- 2. VALOR BRUTO: El nombre del género desanidado
+        a.mal_id as anime_id,        
         lower(trim(f.value::string)) as streaming_name_raw 
         
-    FROM {{ ref('stg_anime__details') }} anime,
-    lateral flatten(input => PARSE_JSON(anime.streaming)) f
+    FROM {{ source('anime_source', 'DETAILS') }} a,
+    lateral flatten(input => PARSE_JSON(a.streaming)) f
     
-    WHERE anime.streaming IS NOT NULL
+    WHERE a.streaming IS NOT NULL
       AND f.value::string IS NOT NULL
       AND f.value::string <> '[]'
 )
@@ -22,10 +21,10 @@ SELECT
     t1.anime_id,
     
     -- Generar la clave foránea del género
-    {{ dbt_utils.generate_surrogate_key(['t1.streaming_name_raw']) }} as streaming_id,
+    {{ surrogate_key(['t1.streaming_name_raw']) }} as streaming_id,
     
     -- Clave primaria compuesta para unicidad
-    {{ dbt_utils.generate_surrogate_key(['t1.anime_id', 't1.streaming_name_raw']) }} as anime_streaming_key 
+    {{ surrogate_key(['t1.anime_id', 't1.streaming_name_raw']) }} as anime_streaming_key 
 
 FROM unnested_streaming t1
 

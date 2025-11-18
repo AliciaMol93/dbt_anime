@@ -27,13 +27,10 @@ with details_clean as (
         trim(rating) as rating,
         trim(demographics) as demographics,
 
-        -- URLs válidas (Snowflake/Data Warehouse SQL)
         case when url rlike '^https?://[^\s]+$' then url else null end as url,
         case when image_url rlike '^https?://[^\s]+$' then image_url else null end as image_url,
 
         synopsis,
-
-        -- Fechas
         start_date,
         end_date,
 
@@ -42,7 +39,7 @@ with details_clean as (
     from {{ source("anime_source", "DETAILS") }}
 ),
 
--- Deduplicación: Si un anime_id aparece varias veces, tomamos el registro más reciente (último ingestion_ts)
+-- Si un anime_id aparece varias veces, tomamos el registro más reciente 
 dedup as (
     select
         *,
@@ -79,7 +76,7 @@ final_records as (
     where rn = 1
 )
 
--- Lógica Incremental: Insertar solo nuevos animes que no existen en la tabla de destino (Anti-Join)
+-- Insertamos solo nuevos animes que no existen en la tabla de destino 
 select *
 from final_records f
 {% if is_incremental() %}

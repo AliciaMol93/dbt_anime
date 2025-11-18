@@ -5,14 +5,13 @@
 
 with unnested_studios as (
     SELECT
-        anime.anime_id,        
-        -- 2. VALOR BRUTO: El nombre del género desanidado
+        a.mal_id as anime_id,        
         lower(trim(f.value::string)) as studio_name_raw 
         
-    FROM {{ ref('stg_anime__details') }} anime,
-    lateral flatten(input => PARSE_JSON(anime.studios)) f
+    FROM {{ source('anime_source', 'DETAILS') }} a,
+    lateral flatten(input => PARSE_JSON(a.studios)) f
     
-    WHERE anime.studios IS NOT NULL
+    WHERE a.studios IS NOT NULL
       AND f.value::string IS NOT NULL
       AND f.value::string <> '[]'
 )
@@ -22,12 +21,11 @@ SELECT
     t1.anime_id,
     
     -- Generar la clave foránea del género
-    {{ dbt_utils.generate_surrogate_key(['t1.studio_name_raw']) }} as studio_id,
+    {{surrogate_key(['t1.studio_name_raw']) }} as studio_id,
     
     -- Clave primaria compuesta para unicidad
-    {{ dbt_utils.generate_surrogate_key(['t1.anime_id', 't1.studio_name_raw']) }} as anime_studio_key 
+    {{ surrogate_key(['t1.anime_id', 't1.studio_name_raw']) }} as anime_studio_key 
 
 FROM unnested_studios t1
 
--- Excluimos valores nulos para asegurar la integridad de la clave
 WHERE t1.studio_name_raw IS NOT NULL

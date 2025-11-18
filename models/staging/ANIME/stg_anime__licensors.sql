@@ -1,15 +1,16 @@
 {{
     config(
-        materialized="incremental", unique_key="licensor_id", on_schema_change="fail"
+        materialized="incremental", 
+        unique_key="licensor_id", 
+        on_schema_change="fail"
     )
 }}
 
--- CTE 1: Desanidar la columna 'licensors'
+
 with
     unnested_licensors as (
         select lower(trim(f.value::string)) as licensor_name_raw
-        from
-            {{ ref("stg_anime__details") }} a,
+            from {{ source('anime_source', 'DETAILS') }} a,
             lateral flatten(input => parse_json(a.licensors)) f
         where
             a.licensors is not null
@@ -17,11 +18,9 @@ with
             and f.value::string is not null
     ),
 
-    -- CTE 2: Identificar los valores únicos y generar una ID consistente
     distinct_licensors as (
         select distinct
-            {{ dbt_utils.generate_surrogate_key(["licensor_name_raw"]) }}
-            as licensor_id,
+            {{surrogate_key(["licensor_name_raw"]) }} as licensor_id,
             licensor_name_raw as licensor_name
         from unnested_licensors
         where licensor_name_raw is not null

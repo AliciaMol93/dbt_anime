@@ -5,19 +5,17 @@
 
 with unnested_themes as (
     SELECT
-        anime.anime_id,        
-        -- 2. VALOR BRUTO: El nombre del género desanidado
+        a.mal_id as anime_id,        
         lower(trim(f.value::string)) as theme_name_raw 
         
-    FROM {{ ref('stg_anime__details') }} anime,
-    lateral flatten(input => PARSE_JSON(anime.themes)) f
+    FROM {{ source('anime_source', 'DETAILS') }} a,
+    lateral flatten(input => PARSE_JSON(a.themes)) f
     
-    WHERE anime.themes IS NOT NULL
+    WHERE a.themes IS NOT NULL
       AND f.value::string IS NOT NULL
       AND f.value::string <> '[]'
 )
 
--- Resultado Final: Mapear Anime ID a studio ID
 SELECT
     t1.anime_id,
     
