@@ -32,5 +32,4 @@ with
 select *
 from
     distinct_genres
-    -- NOTA: Quita la lógica incremental por ahora para que solo se ejecute como TABLE
     

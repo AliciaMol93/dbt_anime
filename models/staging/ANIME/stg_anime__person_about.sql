@@ -1,6 +1,5 @@
 {{ config(
-    materialized='table',
-    unique_key=['person_id']
+    materialized='table'
 ) }}
 
 WITH src_about AS (
@@ -12,7 +11,7 @@ WITH src_about AS (
 )
 
 SELECT
-    {{ dbt_utils.generate_surrogate_key(['person_mal_id']) }} AS person_id,
+    {{ surrogate_key(['person_mal_id']) }} AS person_id,
     person_mal_id,
     narrative_about_text,
     CURRENT_TIMESTAMP() AS last_updated_at

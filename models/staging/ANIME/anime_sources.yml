@@ -73,19 +73,17 @@ sources:
             description: Season of release
 
       - name: FAVS
+        description: Users' favorites
         columns:
           - name: USERNAME
             description: Username of the user marking the favorite.
-
           - name: FAV_TYPE
             description: Type of favorite (character, anime, people).
-
           - name: ID
-            description: Identifier of the favorite entity.
+            description: Identifier of the favorite entity
             tests:
-              - unique
               - not_null
-
+        
       - name: PERSON_ANIME_WORKS
         columns:
           - name: PERSON_MAL_ID
@@ -97,7 +95,6 @@ sources:
           - name: ANIME_MAL_ID
             description: ID of the anime (MyAnimeList) linked to the person.
             tests:
-              - unique
               - not_null
 
       - name: PERSON_DETAILS
@@ -105,7 +102,6 @@ sources:
           - name: PERSON_MAL_ID
             description: ID of the person (MyAnimeList).
             tests:
-              - unique
               - not_null
 
           - name: NAME

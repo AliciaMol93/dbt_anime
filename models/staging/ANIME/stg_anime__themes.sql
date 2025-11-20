@@ -1,43 +1,29 @@
 {{ config(
-    materialized="incremental",
-    unique_key="studio_id",
-    on_schema_change="fail"
+    materialized='incremental',
+    unique_key='theme_id'
 ) }}
 
-with unnested_studios as (
+with unnested_themes as (
     select
-        lower(trim(f.value::string)) as studio_name_raw 
+        lower(trim(f.value::string)) as theme_name_raw
     from {{ source('anime_source', 'DETAILS') }} a,
-         lateral flatten(input => parse_json(a.studios)) f
-    where a.studios is not null
+         lateral flatten(input => parse_json(a.themes)) f
+    where a.themes is not null
       and f.value::string is not null
       and f.value::string <> '[]'
 ),
 
-distinct_studios as (
+distinct_themes as (
     select distinct
-        {{ surrogate_key(['studio_name_raw']) }} as studio_id,
-        studio_name_raw as studio_name
-    from unnested_studios
-    where studio_name_raw is not null
+        {{ surrogate_key(['theme_name_raw']) }} as theme_id,
+        theme_name_raw as theme_name
+    from unnested_themes
+    where theme_name_raw is not null
 )
+
+select *
+from distinct_themes t1
 
 {% if is_incremental() %}
-
-, final_studios as (
-    select
-        t1.studio_id,
-        t1.studio_name
-    from distinct_studios t1
-    left join {{ this }} t2
-        on t1.studio_id = t2.studio_id
-    where t2.studio_id is null
-)
-
-select * from final_studios
-
-{% else %}
-
-select * from distinct_studios
-
+where t1.theme_id not in (select theme_id from {{ this }})
 {% endif %}

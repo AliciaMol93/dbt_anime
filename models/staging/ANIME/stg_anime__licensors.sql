@@ -30,7 +30,6 @@ select licensor_id, licensor_name
 from distinct_licensors
 
 {% if is_incremental() %}
-    -- LÓGICA INCREMENTAL: SÓLO SE AÑADEN NUEVOS LICENCIATARIOS
-    -- Esto se compila sólo si ya existe la tabla final ({{ this }})
+
     where licensor_id not in (select licensor_id from {{ this }})
 {% endif %}

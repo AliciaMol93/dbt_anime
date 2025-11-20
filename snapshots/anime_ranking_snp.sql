@@ -3,17 +3,19 @@
     config(
         target_schema="snapshots",
         unique_key="anime_id",   
-        strategy="check",
-        check_cols=["score", "rank", "popularity", "members", "favorites"]
+        strategy="timestamp",
+        updated_at="ingestion_ts"
     )
 }}
 select
-    CAST(anime_id AS VARCHAR) AS anime_id,  
+    anime_id,  
     rank,
     score,
     scored_by,
     popularity,
     members,
-    favorites
+    favorites,
+    ingestion_ts
 from {{ ref('stg_anime__details') }}
+where score is not null
 {% endsnapshot %}

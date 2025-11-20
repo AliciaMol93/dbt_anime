@@ -1,20 +1,19 @@
 {{ config(
-    materialized='table',
-    unique_key=['person_id']
+    materialized='table'
 ) }}
 
 WITH src_links AS (
     SELECT
         PERSON_MAL_ID AS person_mal_id,
-        NULLIF(LOWER(TRIM(URL)), '') AS mal_url,
-        NULLIF(LOWER(TRIM(IMAGE_URL)), '') AS image_url,
-        NULLIF(LOWER(TRIM(WEBSITE_URL)), '') AS website_url
+        NULLIF((TRIM(URL)), '') AS mal_url,
+        NULLIF(TRIM(IMAGE_URL)), '') AS image_url,
+        NULLIF(TRIM(WEBSITE_URL)), '') AS website_url
     FROM {{ source('anime_source', 'PERSON_DETAILS') }} 
     WHERE PERSON_MAL_ID IS NOT NULL
 )
 
 SELECT
-    {{ dbt_utils.generate_surrogate_key(["person_mal_id"]) }} AS person_id,
+    {{ surrogate_key(["person_mal_id"]) }} AS person_id,
     person_mal_id,
     mal_url,
     image_url,

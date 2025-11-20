@@ -4,7 +4,7 @@
 
 with unnested_producers as (
     select
-        a.mal_id as anime_id,
+        cast({{ surrogate_key(["mal_id"]) }} as string) AS anime_id,
         lower(trim(f.value::string)) as producer_name_raw 
     from {{ source('anime_source', 'DETAILS') }} a,
          lateral flatten(input => parse_json(a.producers)) f
@@ -14,9 +14,10 @@ with unnested_producers as (
 )
 
 select
-    t1.anime_id,
-    {{ surrogate_key(['t1.producer_name_raw']) }} as producer_id,
-    {{ surrogate_key(['t1.anime_id', 't1.producer_name_raw']) }} as anime_producer_key
-
-from unnested_producers t1
-where t1.producer_name_raw is not null
+    up.anime_id,
+    p.producer_id,
+    {{ surrogate_key(['up.anime_id', 'p.producer_id']) }} as anime_producer_key
+from unnested_producers up
+join {{ ref('stg_anime__producers') }} p
+    on up.producer_name_raw = p.producer_name
+where up.producer_name_raw is not null

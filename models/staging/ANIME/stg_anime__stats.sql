@@ -3,7 +3,7 @@
 with
     source_stats as (
         select
-            {{ surrogate_key(["MAL_ID"]) }} as anime_id,
+            cast({{ surrogate_key(["mal_id"]) }} as string) AS anime_id,
             try_cast(watching as int) as watching_count,
             try_cast(completed as int) as completed_count,
             try_cast(on_hold as int) as on_hold_count,

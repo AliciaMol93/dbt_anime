@@ -5,7 +5,7 @@
 
 with source_stats as (
     select
-        {{ surrogate_key(["MAL_ID"]) }} as anime_id,
+        cast({{ surrogate_key(["mal_id"]) }} as string) AS anime_id,
         *
     from {{ source("anime_source", "STATS") }}
 ),

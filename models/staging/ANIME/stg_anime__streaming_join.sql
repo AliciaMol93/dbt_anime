@@ -5,7 +5,7 @@
 
 with unnested_streaming as (
     SELECT
-        a.mal_id as anime_id,        
+       cast({{ surrogate_key(["mal_id"]) }} as string) AS anime_id,       
         lower(trim(f.value::string)) as streaming_name_raw 
         
     FROM {{ source('anime_source', 'DETAILS') }} a,
@@ -16,17 +16,11 @@ with unnested_streaming as (
       AND f.value::string <> '[]'
 )
 
--- Resultado Final: Mapear Anime ID a streaming ID
-SELECT
-    t1.anime_id,
-    
-    -- Generar la clave foránea del género
-    {{ surrogate_key(['t1.streaming_name_raw']) }} as streaming_id,
-    
-    -- Clave primaria compuesta para unicidad
-    {{ surrogate_key(['t1.anime_id', 't1.streaming_name_raw']) }} as anime_streaming_key 
-
-FROM unnested_streaming t1
-
--- Excluimos valores nulos para asegurar la integridad de la clave
-WHERE t1.streaming_name_raw IS NOT NULL
+select
+    us.anime_id,
+    s.streaming_id,
+    {{ surrogate_key(['us.anime_id', 's.streaming_id']) }} as anime_streaming_key
+from unnested_streaming us
+join {{ ref('stg_anime__streaming') }} s
+    on us.streaming_name_raw = s.streaming_name
+where us.streaming_name_raw is not null

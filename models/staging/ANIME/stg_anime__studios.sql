@@ -30,7 +30,7 @@ distinct_studios as (
 
 {% if is_incremental() %}
 
-final_studios as (
+,final_studios as (
     select
         t1.studio_id,
         t1.studio_name

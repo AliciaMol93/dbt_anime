@@ -6,21 +6,17 @@
     )
 }}
 
--- CTE 1: Desanidar la columna 'producers'
 with unnested_producers as (
     select
-        -- La columna 'value' contiene el nombre del productor individual
         lower(trim(f.value::string)) as producer_name_raw 
     from {{ source('anime_source', 'DETAILS') }} a,
     lateral flatten(input => PARSE_JSON(a.producers)) f
     
-    -- Excluir nulos, arrays vacíos
     where a.producers is not null
       and f.value::string <> '[]'
       and f.value::string is not null
 ),
 
--- CTE 2: Identificar los valores únicos y generar la clave subrogada
 distinct_producers as (
     select distinct
         {{ surrogate_key(['producer_name_raw']) }} as producer_id,
@@ -46,7 +42,6 @@ select * from final_producers
 
 {% else %}
 
--- Full-refresh
 select
     producer_id,
     producer_name

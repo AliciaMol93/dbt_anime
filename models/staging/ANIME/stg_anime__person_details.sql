@@ -1,14 +1,13 @@
 {{ config(
-    materialized='table',
-    unique_key=['person_id']
+    materialized='table'
 ) }}
 
 WITH src_person_details AS (
     SELECT
         PERSON_MAL_ID AS person_mal_id,
-        NULLIF(LOWER(TRIM(NAME)), '') AS name,
-        NULLIF(LOWER(TRIM(GIVEN_NAME)), '') AS given_name,
-        NULLIF(LOWER(TRIM(FAMILY_NAME)), '') AS family_name,
+        NULLIF(TRIM(NAME)), '') AS name,
+        NULLIF(TRIM(GIVEN_NAME)), '') AS given_name,
+        NULLIF(TRIM(FAMILY_NAME)), '') AS family_name,
         CAST(BIRTHDAY AS DATE) AS birthday,
         CAST(FAVORITES AS INT) AS favorites
     FROM {{ source('anime_source', 'PERSON_DETAILS') }}
@@ -16,7 +15,7 @@ WITH src_person_details AS (
 )
 
 SELECT
-    {{ dbt_utils.generate_surrogate_key(['person_mal_id']) }} AS person_id,
+    {{ surrogate_key(['person_mal_id']) }} AS person_id,
     name,
     given_name,
     family_name,

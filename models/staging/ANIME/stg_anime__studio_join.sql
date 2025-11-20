@@ -5,7 +5,7 @@
 
 with unnested_studios as (
     SELECT
-        a.mal_id as anime_id,        
+        cast({{ surrogate_key(["mal_id"]) }} as string) AS anime_id,      
         lower(trim(f.value::string)) as studio_name_raw 
         
     FROM {{ source('anime_source', 'DETAILS') }} a,
@@ -16,16 +16,11 @@ with unnested_studios as (
       AND f.value::string <> '[]'
 )
 
--- Resultado Final: Mapear Anime ID a studio ID
-SELECT
-    t1.anime_id,
-    
-    -- Generar la clave foránea del género
-    {{surrogate_key(['t1.studio_name_raw']) }} as studio_id,
-    
-    -- Clave primaria compuesta para unicidad
-    {{ surrogate_key(['t1.anime_id', 't1.studio_name_raw']) }} as anime_studio_key 
-
-FROM unnested_studios t1
-
-WHERE t1.studio_name_raw IS NOT NULL
+select
+    us.anime_id,
+    s.studio_id,
+    {{ surrogate_key(['us.anime_id', 's.studio_id']) }} as anime_studio_key
+from unnested_studios us
+join {{ ref('stg_anime__studios') }} s
+    on us.studio_name_raw = s.studio_name
+where us.studio_name_raw is not null

@@ -34,7 +34,8 @@ with base as (
 genres as (
     select
         j.anime_id,
-        listagg(g.genre_name, ', ') as genres
+        listagg(g.genre_name, ', ') as genres,
+        count(*) as n_genres
     from {{ ref('stg_anime__genre_join') }} j
     join {{ ref('stg_anime__genres') }} g
         on j.genre_id = g.genre_id
@@ -44,7 +45,8 @@ genres as (
 themes as (
     select
         j.anime_id,
-        listagg(t.theme_name, ', ') as themes
+        listagg(t.theme_name, ', ') as themes,
+        count(*) as n_themes
     from {{ ref('stg_anime__theme_join') }} j
     join {{ ref('stg_anime__themes') }} t
         on j.theme_id = t.theme_id
@@ -54,27 +56,19 @@ themes as (
 studios as (
     select
         j.anime_id,
-        listagg(s.studio_name, ', ') as studios
+        listagg(s.studio_name, ', ') as studios,
+        count(*) as n_studios
     from {{ ref('stg_anime__studio_join') }} j
     join {{ ref('stg_anime__studios') }} s
         on j.studio_id = s.studio_id
     group by j.anime_id
 ),
 
-licensors as (
-    select
-        j.anime_id,
-        listagg(l.licensor_name, ', ') as licensors
-    from {{ ref('stg_anime__licensor_join') }} j
-    join {{ ref('stg_anime__licensors') }} l
-        on j.licensor_id = l.licensor_id
-    group by j.anime_id
-),
-
 streaming as (
     select
         j.anime_id,
-        listagg(s.streaming_name, ', ') as streaming_platforms
+        listagg(s.streaming_name, ', ') as streaming_platforms,
+        count(*) as n_streaming_platforms
     from {{ ref('stg_anime__streaming_join') }} j
     join {{ ref('stg_anime__streaming') }} s
         on j.streaming_id = s.streaming_id
@@ -84,10 +78,27 @@ streaming as (
 select
     b.*,
     g.genres,
+    n.genres,
     t.themes,
+    n_themes,
     s.studios,
-    l.licensors,
-    st.streaming_platforms
+    n_studios
+    st.streaming_platforms,
+    n_streaming_platforms
+    ,
+
+    case
+         when b.score >= 8 then 'high'
+         when b.score <= 6.5 then 'medium'
+         else 'low'
+    end as score_category,
+
+    case 
+        when b.rank >= 100 then 1
+        when b.score >= 8 then 1
+        else 0
+    end as hit_flag,    
+
 from base b
 left join genres g on b.anime_id = g.anime_id
 left join themes t on b.anime_id = t.anime_id
