@@ -44,6 +44,7 @@ models:
       +database: ANIME_SILVER
     marts:
         +database: ANIME_GOLD
+        +schema: dbt_gold
 
 
  

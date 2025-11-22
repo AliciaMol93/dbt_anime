@@ -1,4 +1,33 @@
 models:
+  - name: anime_titles
+    description: "Incremental table for anime titles in English and Japanese, with data cleaning and timestamp-based incremental loading."
+    columns:
+      - name: anime_id
+        description: "Surrogate key for the anime, generated from mal_id using hash function."
+        tests:
+          - not_null
+          - unique
+
+      - name: title
+        description: "Cleaned English title of the anime. Trims whitespace, removes trailing punctuation, and handles null values."
+        tests:
+          - dbt_utils.not_null_where:
+              condition: "title_japanese is null"
+
+      - name: title_japanese
+        description: "Cleaned Japanese title of the anime. Trims whitespace, removes trailing punctuation, and handles null values."
+        tests:
+          - dbt_utils.not_null_where:
+              condition: "title is null"
+
+      - name: ingestion_ts
+        description: "Timestamp when the record was ingested. Used for incremental loading strategy."
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: "2020-01-01"
+              max_value: "current_timestamp()"
+
   - name: stg_anime__details
     description: "Staging table for anime details, cleaned and deduplicated."
     columns:
@@ -7,12 +36,6 @@ models:
         tests:
           - not_null
           - unique
-      - name: title
-        description: "Title of the anime."
-        tests:
-          - not_null
-      - name: title_japanese
-        description: "Japanese title of the anime."
       - name: type
         description: "Type of anime (e.g., TV, Movie)."
       - name: status
@@ -88,7 +111,7 @@ models:
       - name: genre_name
         description: "Name of the genre (cleaned, lowercased)."
         tests:
-          - not_null   
+          - not_null
 
   - name: stg_anime__genres_join
     description: "Join table linking animes with their genres."
@@ -112,8 +135,7 @@ models:
         tests:
           - not_null
           - unique
-           
-    
+
   - name: stg_anime__licensors
     description: "Staging table with unique licensors extracted from anime DETAILS."
     columns:
@@ -139,7 +161,7 @@ models:
       - name: given_name
       - name: family_name
       - name: birthday
-      - name: favorites    
+      - name: favorites
 
   - name: stg_anime__person_about
     description: "Person biography/narrative about text"
@@ -153,10 +175,7 @@ models:
               field: person_id
       - name: person_mal_id
       - name: narrative_about_text
-      - name: last_updated_at         
-
- 
-     
+      - name: last_updated_at
 
   - name: stg_themes
     description: "Unique themes from anime details"
@@ -164,8 +183,8 @@ models:
       - name: theme_id
         description: Surrogate key for theme
         tests:
-        - not_null
-        - unique
+          - not_null
+          - unique
       - name: theme_name
         description: Name of the theme
 
@@ -184,14 +203,13 @@ models:
         tests:
           - not_null
           - dbt_utils.relationships:
-               to: ref('stg_themes')
-               field: theme_id
+              to: ref('stg_themes')
+              field: theme_id
       - name: anime_theme_key
         description: Surrogate key for anime-theme combination
         tests:
           - not_null
           - unique
-        
 
   - name: stg_anime__person_anime_works
     description: "Staging table deduplicating person-anime works"
@@ -207,7 +225,22 @@ models:
       - name: position
         description: Position of the person in the anime (cleaned)
         tests:
-        - not_null
+          - not_null
 
-
-  
+  - name: stg_anime__stats
+    description: "Aggregated anime-level statistics such as scores, rankings, popularity, and member counts. Useful for analytics and trend exploration."
+    columns:
+      - name: mal_id
+        description: Unique ID referencing the anime; joinable with details.csv on mal_id
+      - name: watching_count
+        description: Number of users currently watching the anime.
+      - name: completed_count
+        description: Number of users who have finished watching the anime.
+      - name: on_hold_count
+        description: Number of users who have temporarily paused watching.
+      - name: dropped_count
+        description: Number of users who have stopped watching before completion.
+      - name: plan_to_watch_count
+        description: Number of users who intend to watch the anime in the future.
+      - name: total_users_interacting_count
+        description: Total number of users who have added the anime to their lists.

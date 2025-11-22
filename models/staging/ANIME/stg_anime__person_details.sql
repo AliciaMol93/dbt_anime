@@ -5,9 +5,9 @@
 WITH src_person_details AS (
     SELECT
         PERSON_MAL_ID AS person_mal_id,
-        NULLIF(TRIM(NAME)), '') AS name,
-        NULLIF(TRIM(GIVEN_NAME)), '') AS given_name,
-        NULLIF(TRIM(FAMILY_NAME)), '') AS family_name,
+        NULLIF(TRIM(NAME), '') AS name,
+        NULLIF(TRIM(GIVEN_NAME), '') AS given_name,
+        NULLIF(TRIM(FAMILY_NAME), '') AS family_name,
         CAST(BIRTHDAY AS DATE) AS birthday,
         CAST(FAVORITES AS INT) AS favorites
     FROM {{ source('anime_source', 'PERSON_DETAILS') }}

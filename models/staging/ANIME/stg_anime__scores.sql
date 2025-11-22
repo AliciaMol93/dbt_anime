@@ -55,8 +55,7 @@ percentage_unpivot as (
         )
     )
 )
-
--- unimos votes + percentage
+--votes y percentage
 select
     v.anime_id,
     v.score,

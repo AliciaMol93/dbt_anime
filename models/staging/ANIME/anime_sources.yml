@@ -72,6 +72,9 @@ sources:
           - name: SEASON
             description: Season of release
 
+          - name: INGESTION_TS
+            description: Timestamp of the record’s ingestion into the Bronze table
+
       - name: FAVS
         description: Users' favorites
         columns:
