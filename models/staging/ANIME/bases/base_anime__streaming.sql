@@ -4,7 +4,7 @@ with
     base_streaming as (
 
         select
-            {{ surrogate_key(["mal_id"]) }} as anime_id,
+            mal_id,
             f.value::string as streaming_name_raw,
         from
             {{ source("anime_source", "DETAILS") }} a,
@@ -16,7 +16,8 @@ with
             and streaming_name_raw is not null
     )
 select
-    anime_id,
+    {{ surrogate_key(["mal_id"]) }} as anime_id,
     lower(trim(streaming_name_raw)) as streaming_name,
-    {{ surrogate_key(["streaming_name_raw"]) }} as streaming_id
+    {{ surrogate_key(["lower(trim(streaming_name_raw))"]) }} as streaming_id
 from base_streaming
+where lower(trim(streaming_name_raw)) is not null

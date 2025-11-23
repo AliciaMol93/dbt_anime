@@ -3,8 +3,8 @@
 with
     base_themes as (
         select
-            {{ surrogate_key(["mal_id"]) }} as anime_id,
-            lower(trim(f.value::string)) as theme_name_raw
+            mal_id,
+            f.value::string as theme_name_raw
 
         from
             {{ source("anime_source", "DETAILS") }} a,
@@ -17,8 +17,8 @@ with
     )
 
 select
-    anime_id,
-    theme_name_raw as theme_name,
-    {{ surrogate_key(["theme_name_raw"]) }} as theme_id
+    {{ surrogate_key(["mal_id"]) }} as anime_id,
+    lower(trim(theme_name_raw)) as theme_name,
+    {{ surrogate_key(["lower(trim(theme_name_raw))"]) }} as theme_id
 from base_themes
-where theme_name is not null
+where lower(trim(theme_name_raw)) is not null

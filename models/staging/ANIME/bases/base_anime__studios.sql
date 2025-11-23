@@ -4,8 +4,8 @@
 
 with base_studios as (
     select
-        {{ surrogate_key(["mal_id"]) }}  AS anime_id,      
-        lower(trim(f.value::string)) as studio_name_raw 
+        mal_id,      
+        f.value::string as studio_name_raw 
         
     from {{ source('anime_source', 'DETAILS') }} a,
     lateral flatten(input => PARSE_JSON(a.studios)) f
@@ -16,8 +16,8 @@ with base_studios as (
 )
 
 select
-    anime_id,
-    studio_name_raw as studio_name,
-    {{ surrogate_key(['studio_name_raw']) }} as studio_id
+    {{ surrogate_key(["mal_id"]) }} as anime_id,
+    lower(trim(studio_name_raw)) as studio_name,
+    {{ surrogate_key(["lower(trim(studio_name_raw))"]) }} as studio_id
 from base_studios
-where studio_name is not null
+where lower(trim(studio_name_raw)) is not null

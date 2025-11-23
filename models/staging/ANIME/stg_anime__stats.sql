@@ -10,7 +10,7 @@ with
             try_cast(dropped as int) as dropped_count,
             try_cast(plan_to_watch as int) as plan_to_watch_count,
             try_cast(total as int) as total_users_interacting_count,
-            current_timestamp() as last_updated_at
+            ingestion_ts
         from {{ source('anime_source', 'STATS') }}
 )
 select * from source_stats

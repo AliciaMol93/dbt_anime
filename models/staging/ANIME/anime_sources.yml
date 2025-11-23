@@ -219,3 +219,6 @@ sources:
             
           - name: SCORE_10_PERCENTAGE
             description: Percentage for score 10.
+
+          - name: INGESTION_TS
+            description: Timestamp of the record’s ingestion into the Bronze table  
