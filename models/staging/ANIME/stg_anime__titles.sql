@@ -1,7 +1,7 @@
 {{
     config(
         materialized="incremental",
-        unique_key="anime_id",
+        unique_key="anime_id", 
         on_schema_change="fail",
         incremental_strategy="merge",
     )
@@ -17,6 +17,15 @@ with
                     then null
                     when right(trim(title), 1) in ('.', ',')
                     then left(trim(title), length(trim(title)) - 1)
+                    -- NUEVO: Limpiar temporadas y partes
+                    when trim(title) like '% Season %' 
+                        then trim(regexp_replace(trim(title), ' Season [0-9]+', ''))
+                    when trim(title) like '% Part %' 
+                        then trim(regexp_replace(trim(title), ' Part [0-9]+', ''))
+                    when trim(title) like '% Cour %' 
+                        then trim(regexp_replace(trim(title), ' Cour [0-9]+', ''))
+                    when trim(title) like '% Chapter %' 
+                        then trim(regexp_replace(trim(title), ' Chapter [0-9]+', ''))
                     else trim(title)
                 end,
                 ''

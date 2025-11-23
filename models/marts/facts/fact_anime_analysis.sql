@@ -71,7 +71,6 @@ select
     d.date_id,
     d.stat_date,
 
-    -- Dimensiones desnormalizadas
     g.genre_id,
     g.genre_name,
     s.studio_id,
@@ -83,7 +82,7 @@ select
     th.theme_id,
     th.theme_name,
 
-    -- Atributos base
+    -- base
     a.title,
     a.type,
     a.status,
@@ -92,8 +91,6 @@ select
     a.season,
     a.year,
     a.rating,
-    a.url,
-    a.image_url,
 
     -- Métricas
     m.avg_score,
@@ -106,7 +103,7 @@ select
     d.on_hold_count,
     d.plan_to_watch_count,
 
-    -- Métrica compuesta: éxito ponderado por engagement diario
+    -- Métrica compuesta: éxito ponderado por engagement diario: 
     (m.avg_score * ln(1 + d.total_engagement)) as success_index
 
 from anime_base a

@@ -6,16 +6,18 @@
 with source_stats as (
     select
         cast({{ surrogate_key(["mal_id"]) }} as string) AS anime_id,
-        *
+        *,
+        ingestion_ts
     from {{ source("anime_source", "STATS") }}
 ),
 
--- 1️⃣ UNPIVOT de votos por score 1-10
+-- UNPIVOT de VOTES
 votes_unpivot as (
     select
         anime_id,
         to_number(regexp_substr(metric, '\\d+')) as score,
-        try_cast(cast(votes as string) as NUMBER(38,0)) as votes
+        try_cast(cast(votes as string) as NUMBER(38,0)) as votes, 
+        ingestion_ts
     from source_stats
     unpivot (
         votes for metric in (
@@ -33,11 +35,12 @@ votes_unpivot as (
     )
 ),
 
--- 2️⃣ UNPIVOT de porcentaje si necesitas (solo para referencia, no afecta score)
+-- UNPIVOT de PERCENTAGE
 percentage_unpivot as (
     select
         anime_id,
         to_number(regexp_substr(metric, '\\d+')) as score,
+        ingestion_ts,
         percentage
     from source_stats
     unpivot (
@@ -54,28 +57,17 @@ percentage_unpivot as (
             SCORE_10_PERCENTAGE
         )
     )
-),
-
--- 3️⃣ Filtrar scores válidos 1-10 y calcular agregaciones
-scores_clean as (
-    select
-        v.anime_id,
-        v.score,
-        v.votes,
-        p.percentage,
-        current_timestamp() as ingestion_ts
-    from votes_unpivot v
-    join percentage_unpivot p
-        on v.anime_id = p.anime_id
-       and v.score = p.score
-    where v.score between 1 and 10
 )
-
+--votes y percentage
 select
-    anime_id,
-    score,
-    votes,
-    percentage,
+    v.anime_id,
+    v.score,
+    v.votes,
+    p.percentage,
     ingestion_ts
-from scores_clean
-order by anime_id, score;
+from votes_unpivot v
+join percentage_unpivot p
+    on v.anime_id = p.anime_id
+   and v.score = p.score
+where v.score between 1 and 10
+order by v.anime_id, v.score
