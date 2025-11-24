@@ -1,22 +1,26 @@
 {{ config(materialized="table") }}
 
-with
-    base_producers as (
+with raw as (
+    select 
+        a.mal_id,
+        lower(trim(f.value::string)) as producer_name
+    from {{ source('anime_source', 'DETAILS') }} a,
+         lateral flatten(input => parse_json(a.producers)) f
+    where a.producers is not null
+),
 
-        select 
-            mal_id, 
-            f.value::string as producer_name_raw
-        from
-            {{ source("anime_source", "DETAILS") }} a,
-            lateral flatten(input => parse_json(a.producers)) f
-        where
-            a.producers is not null
-            and f.value::string is not null
-            and f.value::string <> '[]'
-    )
+clean as (
+    select distinct
+        {{ surrogate_key(['mal_id']) }} as anime_id,
+        producer_name
+    from raw
+    where producer_name is not null
+      and producer_name <> ''
+)
+
 select
-    {{ surrogate_key(["mal_id"]) }} as anime_id,
-    lower(trim(producer_name_raw)) as producer_name,
-    {{ surrogate_key(["lower(trim(producer_name_raw)"]) }} as producer_id
-from base_producers
-where lower(trim(producer_name_raw)) is not null
+    anime_id,
+    producer_name,
+    {{ surrogate_key(['producer_name']) }} as producer_id
+from clean
+order by anime_id, producer_name

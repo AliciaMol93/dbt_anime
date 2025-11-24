@@ -1,9 +1,9 @@
 {{ config(materialized="table") }}
 
 select
-    r.anime_id,
-    p.producer_id,
-    p.producer_name
-from {{ ref('stg_anime__producers_rel_anime') }} r
-join {{ ref('stg_anime__producers') }} p
-    on r.producer_id = p.producer_id
+    rel.anime_id,
+    prod.producer_id,
+    prod.producer_name
+from {{ ref('stg_anime__producers_rel_anime') }} rel
+join {{ ref('stg_anime__producers') }} prod
+    on rel.producer_id = prod.producer_id
