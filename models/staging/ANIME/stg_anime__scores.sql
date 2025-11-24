@@ -78,4 +78,4 @@ select
     percentage,
     ingestion_ts
 from scores_clean
-order by anime_id, score;
+order by anime_id, score
