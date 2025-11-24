@@ -9,7 +9,7 @@
 
 with title_anime as (
     select
-        cast(md5(cast(coalesce(cast(mal_id as text), '') as text)) as varchar) as anime_id,
+        cast({{ surrogate_key(["mal_id"]) }} as varchar) as anime_id, 
 
         nullif(
             case
