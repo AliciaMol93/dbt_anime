@@ -3,7 +3,7 @@
 with
     details_clean as (
         select
-            cast({{ surrogate_key(["mal_id"]) }} as varchar) as anime_id,
+            {{ surrogate_key(["mal_id"]) }} as anime_id,
             nullif(lower(trim(type)), '') as type,
             nullif(lower(trim(status)), '') as status,
             rank,
@@ -12,8 +12,8 @@ with
             popularity,
             members,
             favorites,
-            episodes,
-            year,
+            CAST(episodes as INT) as episodes,
+            CAST(year as INT) as year,
             nullif(lower(trim(season)), '') as season,
             nullif(lower(trim(source)), '') as source,
             nullif(lower(trim(rating)), '') as rating,
@@ -25,14 +25,14 @@ with
             end as image_url,
 
             synopsis,
-            start_date,
-            end_date,
+            cast(start_date as date) AS start_date,
+            cast(end_date as date) as end_date,
             ingestion_ts
-
         from {{ source("anime_source", "DETAILS") }}
     )
 
-select * from details_clean
+select *
+from details_clean
 {% if is_incremental() %}
-where ingestion_ts > (select max(ingestion_ts) from {{ this }})
+    where ingestion_ts > (select max(ingestion_ts) from {{ this }})
 {% endif %}

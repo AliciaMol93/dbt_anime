@@ -13,7 +13,6 @@ with
             a.streaming is not null
             and f.value::string is not null
             and f.value::string <> '[]'
-            and streaming_name_raw is not null
     )
 select
     {{ surrogate_key(["mal_id"]) }} as anime_id,

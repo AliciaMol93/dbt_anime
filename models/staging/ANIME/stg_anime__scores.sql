@@ -33,7 +33,7 @@ votes_unpivot as (
     )
 ),
 
--- 2️⃣ UNPIVOT de porcentaje si necesitas (solo para referencia, no afecta score)
+-- 2️⃣ UNPIVOT de porcentaje 
 percentage_unpivot as (
     select
         anime_id,
@@ -56,7 +56,6 @@ percentage_unpivot as (
     )
 ),
 
--- 3️⃣ Filtrar scores válidos 1-10 y calcular agregaciones
 scores_clean as (
     select
         v.anime_id,

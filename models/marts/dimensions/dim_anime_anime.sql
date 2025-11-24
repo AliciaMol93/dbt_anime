@@ -28,8 +28,6 @@ select
     ad.source,
     ad.rating,
     ad.demographics,
-    ad.url,
-    ad.image_url,
     ad.synopsis,
     ad.start_date,
     ad.end_date,

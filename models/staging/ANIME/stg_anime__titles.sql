@@ -2,14 +2,14 @@
     config(
         materialized="incremental",
         unique_key="anime_id",
-        on_schema_change="fail",
-        incremental_strategy="merge"
-    ) 
+        incremental_strategy="merge",
+        on_schema_change="fail"
+    )
 }}
 
 with title_anime as (
     select
-        cast({{ surrogate_key(["mal_id"]) }} as varchar) as anime_id, 
+        {{ surrogate_key(["mal_id"]) }} as anime_id, 
 
         nullif(
             case
@@ -29,15 +29,18 @@ with title_anime as (
             ''
         ) as title_japanese,
 
-        current_timestamp() as ingestion_ts
+        ingestion_ts
     from {{ source("anime_source", "DETAILS") }}
 ),
-
+--no quiero duplicados , lo hago por anime id pero entones los titulos se repetirán, porque son diferentes (season...hago otra tabla?)
 deduped as (
     select anime_id, title_clean, title_japanese, ingestion_ts
     from (
         select *,
-            row_number() over(partition by title_clean, title_japanese order by ingestion_ts desc) as rn
+            row_number() over (
+                partition by anime_id
+                order by ingestion_ts desc
+            ) as rn
         from title_anime
     ) t
     where rn = 1
@@ -46,5 +49,5 @@ deduped as (
 select *
 from deduped
 {% if is_incremental() %}
-    where anime_id not in (select anime_id from {{ this }})
+    where ingestion_ts > (select max(ingestion_ts) from {{ this }})
 {% endif %}

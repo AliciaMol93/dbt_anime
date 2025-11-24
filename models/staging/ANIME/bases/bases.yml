@@ -1,0 +1,90 @@
+version: 2
+
+models:
+
+  - name: base_genres
+    description: "Extracted genres from DETAILS JSON field. Each row links an anime with one genre."
+    columns:
+      - name: anime_id
+        description: "Surrogate key generated from MAL_ID"
+        tests:
+          - not_null
+      - name: genre_name
+        description: "Cleaned genre name"
+        tests:
+          - not_null
+      - name: genre_id
+        description: "Surrogate key for the genre"
+        tests:
+          - not_null
+          - unique
+
+  - name: base_licensors
+    description: "Extracted licensors from DETAILS JSON field."
+    columns:
+      - name: anime_id
+        tests: 
+          - not_null
+      - name: licensor_name
+        tests:
+          - not_null
+      - name: licensor_id
+        tests:
+          - not_null
+          - unique
+
+  - name: base_producers
+    description: "Extracted producers from DETAILS JSON field."
+    columns:
+      - name: anime_id
+        tests: 
+          - not_null
+      - name: producer_name
+        tests:
+          - not_null
+      - name: producer_id
+        tests:
+          - not_null
+          - unique
+
+  - name: base_streaming
+    description: "Extracted streaming platforms from DETAILS JSON field."
+    columns:
+      - name: anime_id
+        tests:
+          - not_null
+      - name: streaming_name
+        tests:
+          - not_null
+      - name: streaming_id
+        tests:
+          - not_null
+          - unique
+
+  - name: base_studios
+    description: "Extracted studios from DETAILS JSON field."
+    columns:
+      - name: anime_id
+        tests:
+          - not_null
+      - name: studio_name
+        tests:
+          - not_null
+      - name: studio_id
+        tests:
+          - not_null
+          - unique
+
+  - name: base_themes
+    description: "Extracted themes from DETAILS JSON field."
+    columns:
+      - name: anime_id
+        tests:
+          - not_null
+      - name: theme_name
+        tests:
+          - not_null
+      - name: theme_id
+        tests:
+          - not_null
+          - unique

@@ -17,6 +17,6 @@ with
 select
     {{ surrogate_key(["mal_id"]) }} as anime_id,
     lower(trim(producer_name_raw)) as producer_name,
-    {{ surrogate_key(["lower(trim(producer_name_raw))"]) }} as producer_id
+    {{ surrogate_key(["lower(trim(producer_name_raw)"]) }} as producer_id
 from base_producers
 where lower(trim(producer_name_raw)) is not null
