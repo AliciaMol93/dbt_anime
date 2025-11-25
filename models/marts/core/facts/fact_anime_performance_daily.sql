@@ -7,7 +7,7 @@
 
 with
 
--- 1️⃣ Scores históricos (media ponderada REAL)
+-- Scores históricos (media ponderada REAL)
 scores as (
     select
         anime_id,
@@ -18,7 +18,7 @@ scores as (
     group by anime_id
 ),
 
--- 2️⃣ Engagement diario
+-- Engagement diario
 daily_stats as (
     select
         anime_id,

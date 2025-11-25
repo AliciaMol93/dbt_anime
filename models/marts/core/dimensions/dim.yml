@@ -180,9 +180,7 @@ models:
       - name: narrative_about_text
         description: Biography text.
 
-  # ---------------------------------------------------------
-  # dim_anime_producers
-  # ---------------------------------------------------------
+
   - name: dim_anime_producers
     description: One row per anime–producer relationship.
     columns:
@@ -242,9 +240,7 @@ models:
       - name: studio_name
         description: Studio name.
 
-  # ---------------------------------------------------------
-  # dim_anime_themes
-  # ---------------------------------------------------------
+
   - name: dim_anime_themes
     description: One row per anime–theme relationship.
     columns:
@@ -287,3 +283,35 @@ models:
           - not_null
           - accepted_values:
               values: ['Boomer','Gen X','Millennial','Gen Z']
+
+
+  - name: dim_anime_person_role
+    description: >
+      Dimension linking each person to the anime they worked on, with a
+      cleaned and normalized role.
+
+    columns:
+
+      - name: person_id
+        description: "Unique person identifier."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_anime_person_astrology')
+              field: person_id
+
+      - name: anime_id
+        description: "Unique anime identifier."
+        tests:
+          - not_null
+
+      - name: role
+        description: "Normalized role name."
+        tests:
+          - not_null
+
+      - name: person_id__anime_id__role
+        description: "Composite unique key."
+        tests:
+          - unique
+            
