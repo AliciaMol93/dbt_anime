@@ -9,6 +9,7 @@ WITH src AS (
         narrative_about_text
     FROM {{ ref('stg_anime__person_about') }}
     WHERE narrative_about_text IS NOT NULL 
+    LIMIT 20000
 
 ),
 

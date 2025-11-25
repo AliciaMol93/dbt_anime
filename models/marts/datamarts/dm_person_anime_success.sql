@@ -1,5 +1,5 @@
 {{ config(
-    materialized="table"
+    materialized = "table"
 ) }}
 
 -- 1) Personas con astrología
@@ -8,7 +8,7 @@ WITH person_dim AS (
         person_id,
         zodiac_sign,
         generation
-    FROM {{ ref('dim_anime_person_astrology') }}
+    FROM ANIME_GOLD.dbt_amartinolmos.dim_anime_person_astrology
 ),
 
 -- 2) Roles de persona en anime
@@ -16,8 +16,8 @@ role_links AS (
     SELECT
         person_id,
         anime_id,
-        position
-    FROM {{ ref('dim_anime_person_works') }}
+        role
+    FROM ANIME_GOLD.dbt_amartinolmos.dim_anime_person_works
 ),
 
 -- 3) Última fila del fact diario para cada anime
@@ -31,7 +31,7 @@ latest_anime AS (
             total_engagement,
             stat_date,
             ROW_NUMBER() OVER (PARTITION BY anime_id ORDER BY stat_date DESC) AS rn
-        FROM {{ ref('fact_anime_performance_daily') }}
+        FROM ANIME_GOLD.dbt_amartinolmos.fact_anime_performance_daily
     )
     WHERE rn = 1
 )
@@ -40,7 +40,7 @@ latest_anime AS (
 SELECT
     r.person_id,
     r.anime_id,
-    r.position,
+    r.role,                   
 
     p.zodiac_sign,
     p.generation,
