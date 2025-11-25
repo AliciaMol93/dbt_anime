@@ -17,6 +17,6 @@ with
 select
     {{ surrogate_key(["mal_id"]) }} as anime_id,
     lower(trim(licensor_name_raw)) as licensor_name,
-    {{ surrogate_key(["lower(trim((licensor_name_raw)"]) }} as licensor_id
+    {{ surrogate_key(["licensor_name"]) }} as licensor_id
 from base_licensors
 where lower(trim(licensor_name_raw)) is not null

@@ -1,6 +1,6 @@
 {{ config(materialized="table") }}
 
-select 
+select distinct
     anime_id, 
     genre_id, 
     {{ surrogate_key(['anime_id', 'genre_id']) }} as anime_genre_key

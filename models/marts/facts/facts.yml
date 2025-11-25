@@ -1,0 +1,107 @@
+models:
+  - name: fact_anime_engagement
+    description: >
+      Fact table that consolidates daily anime engagement metrics with
+      weighted score statistics.  
+      This model combines:
+        • weighted average score (using vote counts),
+        • vote dispersion (polarization),
+        • daily user engagement from STATS,
+        • derived metrics such as drop rate, completion ratio,
+        • a success index combining quality + popularity.
+
+      Granularity: one row per anime_id per date_id.
+
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ["anime_id", "date_id"]
+
+    columns:
+      - name: anime_id
+        description: >
+          Surrogate key referencing the anime.
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('dim_anime_anime')
+              field: anime_id
+
+      - name: date_id
+        description: >
+          Surrogate key for the calendar date.
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('dim_anime_date')
+              field: date_id
+
+      - name: stat_date
+        description: >
+          Actual calendar date extracted from ingestion_ts.
+
+      - name: avg_score
+        description: >
+          Weighted average fan score.
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 10
+
+      - name: total_votes
+        description: >
+          Total number of score votes.
+        tests:
+          - non_negative
+
+      - name: score_dispersion
+        description: >
+          Standard deviation of score votes.
+
+      - name: total_engagement
+        description: >
+          Total daily user engagement.
+        tests:
+          - non_negative
+
+      - name: watching_count
+        description: >
+          Users currently watching.
+        tests:
+          - non_negative
+
+      - name: completed_count
+        description: >
+          Users who finished the anime.
+        tests:
+          - non_negative
+
+      - name: dropped_count
+        description: >
+          Users who dropped the anime.
+        tests:
+          - non_negative
+
+      - name: on_hold_count
+        description: >
+          Users who paused.
+        tests:
+          - non_negative
+
+      - name: plan_to_watch_count
+        description: >
+          Users planning to watch.
+        tests:
+          - non_negative
+
+      - name: success_index
+        description: >
+          Composite metric: avg_score * ln(1 + total_engagement).
+
+      - name: completion_ratio
+        description: >
+          Completion ratio.
+
+      - name: drop_rate
+        description: >
+          Drop rate.

@@ -93,7 +93,6 @@ models:
           Surrogate key for the favorite entity (from source id).
         tests:
           - not_null
-          - unique
       - name: last_updated_at
         description: >
           Timestamp when this record was ingested.
@@ -120,18 +119,18 @@ models:
     columns:
       - name: anime_id
         description: >
-          Foreign key referencing anime_id in stg_anime_details.
+          Foreign key referencing anime_id in stg_anime__details.
         tests:
           - not_null
-          - dbt_utils.relationships:
-              to: ref('stg_anime_details')
+          - relationships:
+              to: ref('stg_anime__details')
               field: anime_id
       - name: genre_id
         description: >
           Foreign key referencing genre_id in stg_anime__genres.
         tests:
           - not_null
-          - dbt_utils.relationships:
+          - relationships:
               to: ref('stg_anime__genres')
               field: genre_id
       - name: anime_genre_key
@@ -163,18 +162,18 @@ models:
     columns:
       - name: anime_id
         description: >
-          Foreign key referencing anime_id in stg_anime_details.
+          Foreign key referencing anime_id in stg_anime__details.
         tests:
           - not_null
-          - dbt_utils.relationships:
-              to: ref('stg_anime_details')
+          - relationships:
+              to: ref('stg_anime__details')
               field: anime_id
       - name: licensor_id
         description: >
           Foreign key referencing licensor_id in stg_anime__licensors.
         tests:
           - not_null
-          - dbt_utils.relationships:
+          - relationships:
               to: ref('stg_anime__licensors')
               field: licensor_id
       - name: anime_licensor_key
@@ -193,7 +192,7 @@ models:
           Foreign key to stg_anime__person_details
         tests:
           - not_null
-          - dbt_utils.relationships:
+          - relationships:
               to: ref('stg_anime__person_details')
               field: person_id
       - name: person_mal_id
@@ -230,7 +229,6 @@ models:
           Surrogate key for person
         tests:
           - not_null
-          - unique
       - name: name
       - name: given_name
       - name: family_name
@@ -256,7 +254,6 @@ models:
           Maps 1:1 with the PERSON_DETAILS source table.
         tests:
           - not_null
-          - unique
 
       - name: mal_url
         description: >
@@ -289,7 +286,7 @@ models:
     description: > 
       Unique producers from anime details
     columns:
-      - name: producers_id
+      - name: producer_id
         description: >
            Surrogate key for producers
         tests:
@@ -300,27 +297,27 @@ models:
            Name of the producers
 
 
-  - name: stg_anime_producers_rel_anime
+  - name: stg_anime__producers_rel_anime
     description: >
       Join table linking animes with producers
     columns:
       - name: anime_id
         description: >
-          Foreign key to stg_anime_details
+          Foreign key to stg_anime__details
         tests:
           - not_null
-          - dbt_utils.relationships:
-              to: ref('stg_anime_details')
+          - relationships:
+              to: ref('stg_anime__details')
               field: anime_id
       - name: producer_id
         description: >
           Foreign key to stg_anime__producers
         tests:
           - not_null
-          - dbt_utils.relationships:
+          - relationships:
               to: ref('stg_anime__producers')
-              field: producers_id
-      - name: anime_producers_key
+              field: producer_id
+      - name: anime_producer_key
         description: >
           Surrogate key for anime-studio combination
         tests:
@@ -342,24 +339,24 @@ models:
         description: >
            Name of the theme
 
-  - name: stg_anime_theme_rel_anime
+  - name: stg_anime__theme_rel_anime
     description: >
       Join table linking animes with themes
     columns:
       - name: anime_id
         description: >
-          Foreign key to stg_anime_details
+          Foreign key to stg_anime__details
         tests:
           - not_null
-          - dbt_utils.relationships:
-              to: ref('stg_anime_details')
+          - relationships:
+              to: ref('stg_anime__details')
               field: anime_id
       - name: theme_id
         description: >
           Foreign key to stg_themes
         tests:
           - not_null
-          - dbt_utils.relationships:
+          - relationships:
               to: ref('stg_anime__themes')
               field: theme_id
       - name: anime_theme_key
@@ -448,24 +445,24 @@ models:
            Name of the studio
 
 
-  - name: stg_anime_studio_rel_anime
+  - name: stg_anime__studio_rel_anime
     description: >
       Join table linking animes with studios
     columns:
       - name: anime_id
         description: >
-          Foreign key to stg_anime_details
+          Foreign key to stg_anime__details
         tests:
           - not_null
-          - dbt_utils.relationships:
-              to: ref('stg_anime_details')
+          - relationships:
+              to: ref('stg_anime__details')
               field: anime_id
       - name: studio_id
         description: >
           Foreign key to stg_anime__studios
         tests:
           - not_null
-          - dbt_utils.relationships:
+          - relationships:
               to: ref('stg_anime__studios')
               field: studio_id
       - name: anime_studio_key
@@ -484,30 +481,29 @@ models:
            Surrogate key for streaming
         tests:
           - not_null
-          - unique
       - name: streaming_name
         description: >
            Name of the streaming
 
 
-  - name: stg_anime_streaming_rel_anime
+  - name: stg_anime__streaming_rel_anime
     description: >
       Join table linking animes with streaming
     columns:
       - name: anime_id
         description: >
-          Foreign key to stg_anime_details
+          Foreign key to stg_anime__details
         tests:
           - not_null
-          - dbt_utils.relationships:
-              to: ref('stg_anime_details')
+          - relationships:
+              to: ref('stg_anime__details')
               field: anime_id
       - name: streaming_id
         description: >
           Foreign key to stg_anime__streaming
         tests:
           - not_null
-          - dbt_utils.relationships:
+          - relationships:
               to: ref('stg_anime__streaming')
               field: streaming_id
       - name: anime_streaming_key

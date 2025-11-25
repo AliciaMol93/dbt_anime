@@ -1,0 +1,289 @@
+version: 2
+
+models:
+
+
+  - name: dim_anime_anime
+    description: >
+      Canonical anime dimension combining cleaned details and titles.
+      MAL published score is kept as provided; weighted scores belong in the fact table.
+    columns:
+      - name: anime_id
+        description: Surrogate key for the anime (from mal_id).
+        tests:
+          - not_null
+          - unique
+
+      - name: title
+        description: Primary (English) title.
+
+      - name: title_japanese
+        description: Japanese title.
+
+      - name: type
+        description: Type of anime (tv, movie, ova, ...).
+
+      - name: status
+        description: Airing status.
+
+      - name: rank
+        description: Rank by score.
+
+      - name: score
+        description: Average score reported by MAL (as-is).
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 10
+
+      - name: scored_by
+        description: Number of users who rated the anime.
+
+      - name: popularity
+        description: Popularity rank.
+
+      - name: members
+        description: Members count.
+
+      - name: favorites
+        description: Favorites count.
+
+      - name: episodes
+        description: Number of episodes.
+
+      - name: year
+        description: Year of first release.
+
+      - name: season
+        description: Season of release.
+
+      - name: source
+        description: Original source material.
+
+      - name: rating
+        description: Age rating (PG-13, R, ...).
+
+      - name: demographics
+        description: Target demographic (Shounen, Seinen, ...).
+
+      - name: start_date
+        description: Start air date.
+
+      - name: end_date
+        description: End air date.
+
+      - name: ingestion_ts
+        description: Ingestion timestamp from staging.
+
+
+  - name: dim_anime_date
+    description: >
+      Calendar dimension generated from min/max ingestion_ts across sources.
+      Contains date_id, date and seasonal metadata.
+    columns:
+      - name: date_id
+        description: Surrogate date id.
+        tests:
+          - not_null
+          - unique
+
+      - name: date
+        description: Calendar date.
+
+      - name: year
+        description: Year.
+
+      - name: month
+        description: Month number.
+
+      - name: day
+        description: Day of month.
+
+      - name: season
+        description: Season (Winter, Spring, Summer, Fall).
+
+
+  - name: dim_anime_directors
+    description: Rows of anime-director relationships.
+    columns:
+      - name: anime_id
+        description: Foreign key to dim_anime_anime.
+        tests:
+          - not_null
+
+      - name: director_id
+        description: Surrogate key for director (person_id).
+        tests:
+          - not_null
+
+      - name: director_name
+        description: Director name.
+
+
+  - name: dim_anime_genre
+    description: One row per anime–genre pair.
+    columns:
+      - name: anime_id
+        description: FK to dim_anime_anime.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_anime_anime')
+              field: anime_id
+
+      - name: genre_id
+        description: Genre surrogate key.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_anime__genres')
+              field: genre_id
+
+      - name: genre_name
+        description: Genre name.
+
+
+  - name: dim_anime_person
+    description: >
+      Dimension for people (voice actors, staff) combining person details,
+      links and biography information.
+    columns:
+      - name: person_id
+        description: Surrogate key for person (from PERSON_MAL_ID).
+        tests:
+          - not_null
+
+      - name: name
+        description: Full name.
+
+      - name: given_name
+        description: Given name.
+
+      - name: family_name
+        description: Family name.
+
+      - name: birthday
+        description: Date of birth.
+
+      - name: favorites
+        description: Number of favorites.
+
+      - name: mal_url
+        description: MAL profile URL.
+
+      - name: image_url
+        description: Profile image URL.
+
+      - name: website_url
+        description: External website URL.
+
+      - name: narrative_about_text
+        description: Biography text.
+
+  # ---------------------------------------------------------
+  # dim_anime_producers
+  # ---------------------------------------------------------
+  - name: dim_anime_producers
+    description: One row per anime–producer relationship.
+    columns:
+      - name: anime_id
+        description: FK to dim_anime_anime.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_anime_anime')
+              field: anime_id
+
+      - name: producer_id
+        description: Producer surrogate key.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_anime__producers')
+              field: producer_id
+
+      - name: producer_name
+        description: Producer name.
+
+ 
+  - name: dim_anime_streaming
+    description: Unique list of streaming services.
+    columns:
+      - name: streaming_id
+        description: Surrogate key for streaming service.
+        tests:
+          - not_null
+
+      - name: streaming_name
+        description: Streaming service name.
+        tests:
+          - not_null
+
+
+  - name: dim_anime_studios
+    description: One row per anime–studio relationship.
+    columns:
+      - name: anime_id
+        description: FK to dim_anime_anime.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_anime_anime')
+              field: anime_id
+
+      - name: studio_id
+        description: Studio surrogate key.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_anime__studios')
+              field: studio_id
+
+      - name: studio_name
+        description: Studio name.
+
+  # ---------------------------------------------------------
+  # dim_anime_themes
+  # ---------------------------------------------------------
+  - name: dim_anime_themes
+    description: One row per anime–theme relationship.
+    columns:
+      - name: anime_id
+        description: FK to dim_anime_anime.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_anime_anime')
+              field: anime_id
+
+      - name: theme_id
+        description: Surrogate theme id.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_anime__themes')
+              field: theme_id
+
+      - name: theme_name
+        description: Theme name.
+
+  - name: dim_person_astrology
+    description: >
+      Astrology and generation classification based on birthday.
+    columns:
+      - name: person_id
+        tests:
+          - not_null
+          - unique
+
+      - name: zodiac_sign
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+
+      - name: generation
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Boomer','Gen X','Millennial','Gen Z']

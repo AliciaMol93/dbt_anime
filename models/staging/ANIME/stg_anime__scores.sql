@@ -14,8 +14,8 @@ with source_stats as (
 votes_unpivot as (
     select
         anime_id,
-        to_number(regexp_substr(metric, '\\d+')) as score,
-        try_cast(cast(votes as string) as NUMBER(38,0)) as votes
+        to_number(regexp_substr(metric, '\\d+')) as score_raw,
+        try_cast(cast(votes as string) as number(38,0)) as votes_raw
     from source_stats
     unpivot (
         votes for metric in (
@@ -37,8 +37,8 @@ votes_unpivot as (
 percentage_unpivot as (
     select
         anime_id,
-        to_number(regexp_substr(metric, '\\d+')) as score,
-        percentage
+        to_number(regexp_substr(metric, '\\d+')) as score_raw,
+        try_cast(cast(percentage as string) as number(8,5)) as percentage_raw
     from source_stats
     unpivot (
         percentage for metric in (
@@ -59,15 +59,15 @@ percentage_unpivot as (
 scores_clean as (
     select
         v.anime_id,
-        v.score,
-        v.votes,
-        p.percentage,
+        cast(v.score_raw as number(2,0)) as score,
+        cast(v.votes_raw as number(12,0)) as votes,
+        p.percentage_raw as percentage,
         current_timestamp() as ingestion_ts
     from votes_unpivot v
     join percentage_unpivot p
         on v.anime_id = p.anime_id
-       and v.score = p.score
-    where v.score between 1 and 10
+       and v.score_raw = p.score_raw
+    where v.score_raw between 1 and 10
 )
 
 select

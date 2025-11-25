@@ -11,6 +11,7 @@ with
 
 select
     ad.anime_id,
+    ad.mal_id,  
     at.title_clean as title,
     at.title_japanese as title_japanese,
     ad.type,
