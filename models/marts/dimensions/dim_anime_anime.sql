@@ -1,14 +1,13 @@
 {{ config(
     materialized='incremental',
-    unique_key='anime_id'
+    unique_key='anime_id',
+    incremental_strategy='merge',
+    on_schema_change='sync_all_columns'
 ) }}
 
-with anime_details as (
-    select * from {{ ref('stg_anime__details') }}
-),
-anime_titles as (
-    select * from {{ ref('stg_anime__titles') }}
-)
+with
+    anime_details as (select * from {{ ref("stg_anime__details") }}),
+    anime_titles as (select * from {{ ref("stg_anime__titles") }})
 
 select
     ad.anime_id,
@@ -33,9 +32,7 @@ select
     ad.end_date,
     ad.ingestion_ts
 from anime_details ad
-left join anime_titles at
-    on ad.anime_id = at.anime_id
-
+left join anime_titles at on ad.anime_id = at.anime_id
 
 {% if is_incremental() %}
     where ad.ingestion_ts > (select max(ingestion_ts) from {{ this }})

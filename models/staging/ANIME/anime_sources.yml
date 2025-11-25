@@ -14,6 +14,7 @@ sources:
 
     tables:
       - name: DETAILS
+        description: "Raw anime details from Bronze."
         columns:
           - name: MAL_ID
             description: Unique identifier for the anime
@@ -88,9 +89,16 @@ sources:
               - not_null
         
       - name: PERSON_ANIME_WORKS
+        description: "Relations between person and anime (roles/jobs)."
         columns:
           - name: PERSON_MAL_ID
             description: ID of the person (MyAnimeList).
+            tests:
+              - not_null
+              - dbt_utils.relationships:
+                  to: ref('stg_anime__details')
+                  field: person_mal_id      
+              
 
           - name: POSITION
             description: Role or position in the anime work (e.g., theme song performance).
@@ -135,12 +143,16 @@ sources:
             description: Biographical or description info.
 
       - name: STATS
+        description: "Aggregated statistics for animes (votes, score, engagement)."
         columns:
           - name: MAL_ID
             description: Anime unique identifier (MyAnimeList).
             tests:
-              - unique
               - not_null
+              - unique
+              - relationships:
+                  to: ref('stg_anime__details')
+                  field: mal_id
 
           - name: COMPLETED
             description: Number of users who completed the anime.

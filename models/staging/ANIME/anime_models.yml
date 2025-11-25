@@ -1,159 +1,233 @@
 models:
-  - name: anime_titles
-    description: "Incremental table for anime titles in English and Japanese, with data cleaning and timestamp-based incremental loading."
-    columns:
-      - name: anime_id
-        description: "Surrogate key for the anime, generated from mal_id using hash function."
-        tests:
-          - not_null
-          - unique
-
-      - name: title
-        description: "Cleaned English title of the anime. Trims whitespace, removes trailing punctuation, and handles null values."
-        tests:
-          - dbt_utils.not_null_where:
-              condition: "title_japanese is null"
-
-      - name: title_japanese
-        description: "Cleaned Japanese title of the anime. Trims whitespace, removes trailing punctuation, and handles null values."
-        tests:
-          - dbt_utils.not_null_where:
-              condition: "title is null"
-
-      - name: ingestion_ts
-        description: "Timestamp when the record was ingested. Used for incremental loading strategy."
-        tests:
-          - not_null
-          - dbt_utils.accepted_range:
-              min_value: "2020-01-01"
-              max_value: "current_timestamp()"
-
   - name: stg_anime__details
-    description: "Staging table for anime details, cleaned and deduplicated."
+    description: >
+      Staging table for anime details, cleaned and deduplicated.
     columns:
       - name: anime_id
-        description: "Surrogate key for the anime (from mal_id)."
+        description: >
+          Surrogate key for the anime (from mal_id).
         tests:
           - not_null
           - unique
       - name: type
-        description: "Type of anime (e.g., TV, Movie)."
+        description: >
+          Type of anime (e.g., TV, Movie).
       - name: status
-        description: "Status of the anime (e.g., Finished, Airing)."
+        description: >
+          Status of the anime (e.g., Finished, Airing).
       - name: rank
-        description: "Rank of the anime."
+        description: >
+          Rank of the anime.
       - name: score
-        description: "Average score of the anime."
+        description: >
+          Average score of the anime.
         tests:
           - dbt_utils.accepted_range:
               min_value: 0
               max_value: 10
       - name: scored_by
-        description: "Number of users who scored the anime."
+        description: >
+          Number of users who scored the anime.
       - name: popularity
-        description: "Popularity rank."
+        description: >
+          Popularity rank.
       - name: members
-        description: "Number of members in the community."
+        description: >
+          Number of members in the community.
       - name: favorites
-        description: "Number of favorites."
+        description: >
+          Number of favorites.
       - name: episodes
-        description: "Number of episodes."
+        description: >
+          Number of episodes.
       - name: year
-        description: "Year of release."
+        description: >
+          Year of release.
       - name: season
-        description: "Season of release (e.g., Winter, Spring)."
+        description: >
+          Season of release (e.g., Winter, Spring).
       - name: source
-        description: "Original source material of the anime."
+        description: >
+          Original source material of the anime.
       - name: rating
-        description: "Rating of the anime (e.g., PG-13)."
+        description: >
+          Rating of the anime (e.g., PG-13).
       - name: demographics
-        description: "Target demographic of the anime (e.g., Shounen)."
+        description: >
+          Target demographic of the anime (e.g., Shounen).
       - name: url
-        description: "Link to anime page."
+        description: >
+          Link to anime page.
       - name: image_url
-        description: "URL to the anime image."
+        description: >
+          URL to the anime image.
       - name: synopsis
-        description: "Synopsis or description of the anime."
+        description: >
+          Synopsis or description of the anime.
       - name: start_date
-        description: "Start date of the anime."
+        description: >  
+          Start date of the anime.
       - name: end_date
-        description: "End date of the anime."
+        description: >
+          End date of the anime.
       - name: ingestion_ts
-        description: "Timestamp when this record was ingested."
+        description: >
+          Timestamp when this record was ingested.
 
   - name: stg_anime__favs
-    description: "Staging table for user favorites, cleaned and deduplicated."
+    description: >
+      Staging table for user favorites, cleaned and deduplicated.
     columns:
       - name: username
-        description: "Username of the user who marked the favorite."
+        description: >
+          Username of the user who marked the favorite.
         tests:
           - not_null
       - name: fav_type
-        description: "Type of favorite (e.g., anime, character, etc.)."
+        description: >
+          Type of favorite (e.g., anime, character, etc.).
         tests:
           - not_null
       - name: entity_id
-        description: "Surrogate key for the favorite entity (from source id)."
+        description: >
+          Surrogate key for the favorite entity (from source id).
         tests:
           - not_null
           - unique
       - name: last_updated_at
-        description: "Timestamp when this record was ingested."
+        description: >
+          Timestamp when this record was ingested.
 
   - name: stg_anime__genres
-    description: "Staging table with unique genres extracted from anime DETAILS."
+    description: >
+      Staging table with unique genres extracted from anime DETAILS.
     columns:
       - name: genre_id
-        description: "Surrogate key for the genre."
+        description: >
+          Surrogate key for the genre.
         tests:
           - not_null
           - unique
       - name: genre_name
-        description: "Name of the genre (cleaned, lowercased)."
+        description: >
+          Name of the genre (cleaned, lowercased).
         tests:
           - not_null
 
-  - name: stg_anime__genres_join
-    description: "Join table linking animes with their genres."
+  - name: stg_anime__genres_rel_anime
+    description: >
+      Join table linking animes with their genres.
     columns:
       - name: anime_id
-        description: "Foreign key referencing anime_id in stg_anime_details."
+        description: >
+          Foreign key referencing anime_id in stg_anime_details.
         tests:
           - not_null
           - dbt_utils.relationships:
               to: ref('stg_anime_details')
               field: anime_id
       - name: genre_id
-        description: "Foreign key referencing genre_id in stg_genres."
+        description: >
+          Foreign key referencing genre_id in stg_anime__genres.
         tests:
           - not_null
           - dbt_utils.relationships:
-              to: ref('stg_genres')
+              to: ref('stg_anime__genres')
               field: genre_id
       - name: anime_genre_key
-        description: "Surrogate key for the anime-genre combination."
+        description: >
+          Surrogate key for the anime-genre combination.
         tests:
           - not_null
           - unique
 
   - name: stg_anime__licensors
-    description: "Staging table with unique licensors extracted from anime DETAILS."
+    description: >
+      Staging table with unique licensors extracted from anime DETAILS.
     columns:
       - name: licensor_id
-        description: "Surrogate key for the licensor."
+        description: >
+          Surrogate key for the licensor.
         tests:
           - not_null
           - unique
       - name: licensor_name
-        description: "Name of the licensor (cleaned, lowercased)."
+        description: >
+          Name of the licensor (cleaned, lowercased).
         tests:
           - not_null
 
-  - name: stg_anime__person_details
-    description: "Staging table for person details"
+  - name: stg_anime__licensors_rel_anime
+    description: >
+      Join table linking animes with their licensors.
+    columns:
+      - name: anime_id
+        description: >
+          Foreign key referencing anime_id in stg_anime_details.
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('stg_anime_details')
+              field: anime_id
+      - name: licensor_id
+        description: >
+          Foreign key referencing licensor_id in stg_anime__licensors.
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('stg_anime__licensors')
+              field: licensor_id
+      - name: anime_licensor_key
+        description: > 
+          Surrogate key for the anime-licensor combination.
+        tests:
+          - not_null
+          - unique        
+
+  - name: stg_anime__person_about
+    description: >
+      Person biography/narrative about text
     columns:
       - name: person_id
-        description: Surrogate key for person
+        description: >
+          Foreign key to stg_anime__person_details
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('stg_anime__person_details')
+              field: person_id
+      - name: person_mal_id
+      - name: narrative_about_text
+      - name: last_updated_at
+
+  - name: stg_anime__person_anime_works
+    description: >
+      "Staging table deduplicating person-anime works"
+    columns:
+      - name: person_id
+        description: > 
+          Surrogate key for PERSON_MAL_ID
+        tests:
+          - not_null
+      - name: anime_id
+        description: >
+          Surrogate key for ANIME_MAL_ID
+        tests:
+          - not_null
+      - name: position
+        description: >
+          Position of the person in the anime (cleaned)
+        tests:
+          - not_null
+
+  
+  - name: stg_anime__person_details
+    description: >
+      Staging table for person details
+    columns:
+      - name: person_id
+        description: >
+          Surrogate key for person
         tests:
           - not_null
           - unique
@@ -161,86 +235,321 @@ models:
       - name: given_name
       - name: family_name
       - name: birthday
-      - name: favorites
+      - name: favorites    
 
-  - name: stg_anime__person_about
-    description: "Person biography/narrative about text"
+  - name: stg_anime__person_links
+    description: >
+      Staging table that extracts and cleans all URL fields for each person from
+      PERSON_DETAILS. Standardizes links, generates person_id, and keeps only
+      records with at least one valid URL.
     columns:
       - name: person_id
-        description: Foreign key to stg_anime__person_details
+        description: >
+          Surrogate key generated from PERSON_MAL_ID.  
+          Used as primary key and to join with stg_anime__person_details.
+        tests:
+          - not_null
+
+      - name: person_mal_id
+        description: >
+          Original MyAnimeList ID for the person.  
+          Maps 1:1 with the PERSON_DETAILS source table.
+        tests:
+          - not_null
+          - unique
+
+      - name: mal_url
+        description: >
+          The person's official MyAnimeList profile URL.  
+          Cleaned of blank strings and validated by trimming.
+        tests:
+          - valid_url:
+              severity: warn
+
+      - name: image_url
+        description: >
+          URL pointing to the person’s profile image, if provided.
+        tests:
+          - valid_url:
+              severity: warn
+
+      - name: website_url
+        description: >
+          External or personal website URL associated with the person.
+        tests:
+          - valid_url:
+              severity: warn
+
+      - name: last_updated_at
+        description: >
+          Timestamp marking when this record was processed in staging.
+
+
+  - name: stg_anime__producers
+    description: > 
+      Unique producers from anime details
+    columns:
+      - name: producers_id
+        description: >
+           Surrogate key for producers
+        tests:
+          - not_null
+          - unique
+      - name: producers_name
+        description: >
+           Name of the producers
+
+
+  - name: stg_anime_producers_rel_anime
+    description: >
+      Join table linking animes with producers
+    columns:
+      - name: anime_id
+        description: >
+          Foreign key to stg_anime_details
         tests:
           - not_null
           - dbt_utils.relationships:
-              to: ref('stg_person_details')
-              field: person_id
-      - name: person_mal_id
-      - name: narrative_about_text
-      - name: last_updated_at
+              to: ref('stg_anime_details')
+              field: anime_id
+      - name: producer_id
+        description: >
+          Foreign key to stg_anime__producers
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('stg_anime__producers')
+              field: producers_id
+      - name: anime_producers_key
+        description: >
+          Surrogate key for anime-studio combination
+        tests:
+          - not_null
+          - unique
 
-  - name: stg_themes
-    description: "Unique themes from anime details"
+
+  - name: stg_anime__themes
+    description: > 
+      Unique themes from anime details
     columns:
       - name: theme_id
-        description: Surrogate key for theme
+        description: >
+           Surrogate key for theme
         tests:
           - not_null
           - unique
       - name: theme_name
-        description: Name of the theme
+        description: >
+           Name of the theme
 
-  - name: stg_anime_themes
-    description: "Join table linking animes with themes"
+  - name: stg_anime_theme_rel_anime
+    description: >
+      Join table linking animes with themes
     columns:
       - name: anime_id
-        description: Foreign key to stg_anime_details
+        description: >
+          Foreign key to stg_anime_details
         tests:
           - not_null
           - dbt_utils.relationships:
               to: ref('stg_anime_details')
               field: anime_id
       - name: theme_id
-        description: Foreign key to stg_themes
+        description: >
+          Foreign key to stg_themes
         tests:
           - not_null
           - dbt_utils.relationships:
-              to: ref('stg_themes')
+              to: ref('stg_anime__themes')
               field: theme_id
       - name: anime_theme_key
-        description: Surrogate key for anime-theme combination
+        description: >
+          Surrogate key for anime-theme combination
         tests:
           - not_null
           - unique
 
-  - name: stg_anime__person_anime_works
-    description: "Staging table deduplicating person-anime works"
-    columns:
-      - name: person_id
-        description: Surrogate key for PERSON_MAL_ID
-        tests:
-          - not_null
+  - name: stg_anime__scores
+    description: >
+      Staging table that normalizes raw anime score distribution data coming
+      from the STATS source table.  
+      The raw dataset contains 10 separate columns for score vote counts 
+      (SCORE_1_VOTES … SCORE_10_VOTES) and 10 percentage columns 
+      (SCORE_1_PERCENTAGE … SCORE_10_PERCENTAGE).  
+      This model unpivots those into a clean, row-based structure where each
+      record represents a single anime–score pair, including vote count and
+      vote percentage.  
+      It also applies type casting and basic validation to ensure the score
+      is in the expected 1–10 range.
+    columns: 
       - name: anime_id
-        description: Surrogate key for ANIME_MAL_ID
+      - name: score
         tests:
-          - not_null
-      - name: position
-        description: Position of the person in the anime (cleaned)
+          - non_negative
+      - name: votes
         tests:
-          - not_null
+          - non_negative
+      - name: percentage
+        tests:
+          - non_negative
+      - name: ingestion_ts
 
   - name: stg_anime__stats
-    description: "Aggregated anime-level statistics such as scores, rankings, popularity, and member counts. Useful for analytics and trend exploration."
+    description: >
+      Aggregated anime-level statistics such as scores, rankings, popularity, and member counts. Useful for analytics and trend exploration.
     columns:
       - name: mal_id
-        description: Unique ID referencing the anime; joinable with details.csv on mal_id
+        description: >
+          Unique ID referencing the anime; joinable with details.csv on mal_id
       - name: watching_count
-        description: Number of users currently watching the anime.
+        description: >
+          Number of users currently watching the anime
+        tests: 
+          - non_negative
       - name: completed_count
-        description: Number of users who have finished watching the anime.
+        description: >
+          Number of users who have finished watching the anime.
+        tests: 
+          - non_negative
       - name: on_hold_count
-        description: Number of users who have temporarily paused watching.
+        description: >
+          Number of users who have temporarily paused watching.
+        tests: 
+          - non_negative
       - name: dropped_count
-        description: Number of users who have stopped watching before completion.
+        description: >
+          Number of users who have stopped watching before completion.
+        tests: 
+          - non_negative
       - name: plan_to_watch_count
-        description: Number of users who intend to watch the anime in the future.
+        description: >
+          Number of users who intend to watch the anime in the future.
+        tests: 
+          - non_negative
       - name: total_users_interacting_count
-        description: Total number of users who have added the anime to their lists.
+        description: > 
+          Total number of users who have added the anime to their lists.
+        tests: 
+          - non_negative
+
+
+  - name: stg_anime__studios
+    description: > 
+      Unique studio from anime details
+    columns:
+      - name: studio_id
+        description: >
+           Surrogate key for studio
+        tests:
+          - not_null
+          - unique
+      - name: studio_name
+        description: >
+           Name of the studio
+
+
+  - name: stg_anime_studio_rel_anime
+    description: >
+      Join table linking animes with studios
+    columns:
+      - name: anime_id
+        description: >
+          Foreign key to stg_anime_details
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('stg_anime_details')
+              field: anime_id
+      - name: studio_id
+        description: >
+          Foreign key to stg_anime__studios
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('stg_anime__studios')
+              field: studio_id
+      - name: anime_studio_key
+        description: >
+          Surrogate key for anime-studio combination
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_anime__streaming
+    description: > 
+      Unique streaming from anime details
+    columns:
+      - name: streaming_id
+        description: >
+           Surrogate key for streaming
+        tests:
+          - not_null
+          - unique
+      - name: streaming_name
+        description: >
+           Name of the streaming
+
+
+  - name: stg_anime_streaming_rel_anime
+    description: >
+      Join table linking animes with streaming
+    columns:
+      - name: anime_id
+        description: >
+          Foreign key to stg_anime_details
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('stg_anime_details')
+              field: anime_id
+      - name: streaming_id
+        description: >
+          Foreign key to stg_anime__streaming
+        tests:
+          - not_null
+          - dbt_utils.relationships:
+              to: ref('stg_anime__streaming')
+              field: streaming_id
+      - name: anime_streaming_key
+        description: >
+          Surrogate key for anime-streaming combination
+        tests:
+          - not_null
+          - unique
+        
+
+  - name: anime_titles
+    description: >
+      Incremental table for anime titles in English and Japanese, with data cleaning and timestamp-based incremental loading.
+    columns:
+      - name: anime_id
+        description: >
+          Surrogate key for the anime, generated from mal_id using hash function.
+        tests:
+          - not_null
+          - unique
+
+      - name: title
+        description: >
+          Cleaned English title of the anime. Trims whitespace, removes trailing punctuation, and handles null values.
+        tests:
+          - dbt_utils.not_null_where:
+              condition: "title_japanese is null"
+
+      - name: title_japanese
+        description: >
+          Cleaned Japanese title of the anime. Trims whitespace, removes trailing punctuation, and handles null values.
+        tests:
+          - dbt_utils.not_null_where:
+              condition: "title is null"
+
+      - name: ingestion_ts
+        description: >
+          Timestamp when the record was ingested. Used for incremental loading strategy.
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: "2020-01-01"
+              max_value: "current_timestamp()"
+
+
