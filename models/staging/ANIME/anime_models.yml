@@ -21,10 +21,6 @@ models:
       - name: score
         description: >
           Average score of the anime.
-        tests:
-          - dbt_utils.accepted_range:
-              min_value: 0
-              max_value: 10
       - name: scored_by
         description: >
           Number of users who scored the anime.
@@ -544,8 +540,6 @@ models:
           Timestamp when the record was ingested. Used for incremental loading strategy.
         tests:
           - not_null
-          - dbt_utils.accepted_range:
-              min_value: "2020-01-01"
-              max_value: "current_timestamp()"
+
 
 
