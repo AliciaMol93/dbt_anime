@@ -7,7 +7,7 @@
 
 with
 
--- Scores históricos (media ponderada REAL)
+-- Scores históricos 
 scores as (
     select
         anime_id,
@@ -32,7 +32,7 @@ daily_stats as (
     from {{ ref('stg_anime__stats') }}
 ),
 
--- 3️⃣ Dim date join
+-- Dim Date
 daily_with_date as (
     select
         d.*,
@@ -42,7 +42,7 @@ daily_with_date as (
         on d.stat_date = dd.date
 ),
 
--- 4️⃣ Cálculo de métricas avanzadas
+-- Cálculo de métricas avanzadas
 final_fact as (
     select
         d.anime_id,
@@ -83,5 +83,8 @@ final_fact as (
 select * from final_fact
 
 {% if is_incremental() %}
-    where date_id > (select coalesce(max(date_id), 0) from {{ this }})
+    where date_id >= (
+        select coalesce(max(date_id), 0) 
+        from {{ this }}
+    )
 {% endif %}

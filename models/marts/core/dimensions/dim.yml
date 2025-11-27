@@ -314,4 +314,38 @@ models:
         description: "Composite unique key."
         tests:
           - unique
+
+          
+  - name: dim_kimetsu_versions
+    description: "Dimension that groups all Kimetsu no Yaiba versions (seasons, movies, TV arcs) under cleaned and comparable names."
+    columns:
+      - name: version_id
+        description: "Surrogate key for each Kimetsu version."
+        tests: [not_null, unique]
+
+      - name: anime_id
+        description: "Foreign key referencing the original anime entry."
+        tests: [not_null]
+
+      - name: version_clean_name
+        description: "Human-friendly version name (e.g. 'Season 1', 'Mugen Train Movie')."
+
+      - name: short_name
+        description: "Abbreviated name for slicers (S1, S2, Movie)."
+
+      - name: type
+        description: "Type of anime (tv, movie, ona, ova...)."
+
+      - name: season
+        description: "Season of release, when applicable."
+
+      - name: release_year
+        description: "Release year for the version."
+
+      - name: is_main_line
+        description: "Flag identifying if it's part of the main continuity (TV or Movie)."
+
+      - name: universe
+        description: "Always 'Kimetsu no Yaiba'."
+
             

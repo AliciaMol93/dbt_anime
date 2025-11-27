@@ -1,60 +1,56 @@
 {{ config(
     materialized='table',
-    tags=['marts','dimension']
+    tags=['marts','dimension'],
+    max_recursion_depth=200000
 ) }}
 
-with
--- bounds: min/max ingestion_ts from stats and titles (useful sources)
-min_max as (
-    select
-        least(
-            coalesce((select min(cast(ingestion_ts as date)) from {{ ref('stg_anime__stats') }}), NULL),
-            coalesce((select min(cast(ingestion_ts as date)) from {{ ref('stg_anime__titles') }}), NULL)
-        ) as min_dt_candidate,
-        greatest(
-            coalesce((select max(cast(ingestion_ts as date)) from {{ ref('stg_anime__stats') }}), current_date()),
-            coalesce((select max(cast(ingestion_ts as date)) from {{ ref('stg_anime__titles') }}), current_date())
-        ) as max_dt_candidate
+WITH raw_stats AS (
+    SELECT MIN(CAST(ingestion_ts AS DATE)) AS min_dt_stats
+    FROM {{ ref('stg_anime__stats') }}
 ),
 
-bounds as (
-    select
-        coalesce(min_dt_candidate, to_date('1917-01-01')) as min_dt,
-        greatest(coalesce(max_dt_candidate, current_date()), dateadd(day, 365, current_date())) as max_dt
-    from min_max
+raw_titles AS (
+    SELECT MIN(CAST(ingestion_ts AS DATE)) AS min_dt_titles
+    FROM {{ ref('stg_anime__titles') }}
 ),
 
--- recursive date generation from min_dt to max_dt
-date_seq as (
-    select min_dt as dt, max_dt from bounds
-    union all
-    select dateadd(day, 1, dt), max_dt
-    from date_seq
-    where dt < max_dt
+date_range AS (
+    SELECT
+        COALESCE(
+            LEAST(min_dt_stats, min_dt_titles),
+            '2020-01-01'::DATE
+        ) AS min_dt,
+        DATEADD(day, 365, CURRENT_DATE()) AS max_dt
+    FROM raw_stats, raw_titles
 ),
 
-season_calc as (
-    select
-        row_number() over (order by dt) as date_id,
-        dt as date,
-        extract(year from dt) as year,
-        extract(month from dt) as month,
-        extract(day from dt) as day,
-        case
-            when extract(month from dt) in (12,1,2) then 'Winter'
-            when extract(month from dt) in (3,4,5) then 'Spring'
-            when extract(month from dt) in (6,7,8) then 'Summer'
-            else 'Fall'
-        end as season
-    from date_seq
+recursive_dates AS (
+    SELECT min_dt AS date, max_dt
+    FROM date_range
+
+    UNION ALL
+
+    SELECT DATEADD(day, 1, date), max_dt
+    FROM recursive_dates
+    WHERE date < max_dt
+),
+
+final AS (
+    SELECT
+        date,
+        TO_CHAR(date, 'YYYYMMDD')::NUMBER AS date_id,
+        EXTRACT(YEAR FROM date) AS year,
+        EXTRACT(MONTH FROM date) AS month,
+        EXTRACT(DAY FROM date) AS day,
+        CASE
+            WHEN EXTRACT(MONTH FROM date) IN (12,1,2) THEN 'Winter'
+            WHEN EXTRACT(MONTH FROM date) IN (3,4,5) THEN 'Spring'
+            WHEN EXTRACT(MONTH FROM date) IN (6,7,8) THEN 'Summer'
+            ELSE 'Fall'
+        END AS season
+    FROM recursive_dates
 )
 
-select
-    date_id,
-    date,
-    year,
-    month,
-    day,
-    season
-from season_calc
-order by date
+SELECT *
+FROM final
+ORDER BY date

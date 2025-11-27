@@ -27,7 +27,6 @@ with
             -- valores negativos a cero
             greatest(watching_raw, 0) as watching_count,
 
-            -- corregir completados imposibles
             case
                 when watching_raw > 100000 and completed_raw < 50
                 then 0

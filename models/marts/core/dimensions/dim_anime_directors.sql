@@ -13,7 +13,6 @@ with raw as (
 ),
 
 grouped as (
-    -- Agrupamos completamente para evitar errores SQL
     select
         anime_id,
         person_id,

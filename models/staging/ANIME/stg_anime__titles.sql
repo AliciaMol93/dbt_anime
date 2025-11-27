@@ -32,7 +32,7 @@ with title_anime as (
         ingestion_ts
     from {{ source("anime_source", "DETAILS") }}
 ),
---no quiero duplicados , lo hago por anime id pero entones los titulos se repetirán, porque son diferentes (season...hago otra tabla?)
+
 deduped as (
     select anime_id, title_clean, title_japanese, ingestion_ts
     from (

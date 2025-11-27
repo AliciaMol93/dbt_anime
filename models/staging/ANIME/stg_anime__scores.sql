@@ -10,7 +10,7 @@ with source_stats as (
     from {{ source("anime_source", "STATS") }}
 ),
 
--- 1️⃣ UNPIVOT de votos por score 1-10
+-- UNPIVOT de votos por score 1-10
 votes_unpivot as (
     select
         anime_id,
@@ -33,7 +33,7 @@ votes_unpivot as (
     )
 ),
 
--- 2️⃣ UNPIVOT de porcentaje 
+--  UNPIVOT de porcentaje 
 percentage_unpivot as (
     select
         anime_id,

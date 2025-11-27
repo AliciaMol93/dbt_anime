@@ -22,7 +22,7 @@ llm_extract AS (
         AI_EXTRACT(
             text => narrative_about_text,
             responseFormat => 
-            ['birthday_date', 'USE ALWAYS THE DATE FORMAT YYYY-MM-DD. EXTRACT THE BIRTHDAY DATE OF THE TEXT, NULL IF NOT POSSIBLE.']
+            ['birthday_date', 'Return the birth date in YYYY-MM-DD format. If the text does not contain a valid date, return NULL.']
         ) AS llm_json
 
     FROM src
