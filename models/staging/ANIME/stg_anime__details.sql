@@ -1,117 +1,58 @@
-{{
+{{ 
     config(
         materialized="incremental",
         unique_key="anime_id",
+        incremental_strategy="merge",
         on_schema_change="fail"
     )
 }}
 
-with details_clean as (
+with raw as (
+    select *
+    from {{ source("anime_source", "DETAILS") }}
+),
+
+dedup as (
+    select *
+    from raw
+    qualify row_number() over (
+        partition by MAL_ID
+        order by INGESTION_TS desc
+    ) = 1
+),
+
+details_clean as (
     select
-        -- CORRECCIÓN: Usar la macro con el prefijo y el nombre correctos
-        -- Usar 'mal_id' como clave natural es suficiente si es único
-        {{ dbt_utils.generate_surrogate_key(['mal_id']) }} as anime_id,
-
-        -- Conservamos mal_id como clave natural
-        mal_id, 
-
-        -- Limpieza de títulos
-        nullif(lower(regexp_replace(trim(title), '^[\s\.\-\d:]+', '')), '') as title,
-        nullif(lower(regexp_replace(trim(title_japanese), '^[\s\.\-\d:]+', '')), '') as title_japanese,
-
-        lower(trim(type)) as type,
-        lower(trim(status)) as status,
-
-        -- Métricas
+        {{ surrogate_key(['MAL_ID']) }} as anime_id,
+        MAL_ID,
+        nullif(lower(trim(type)), '') as type,
+        nullif(lower(trim(status)), '') as status,
         rank,
         score,
         scored_by,
         popularity,
         members,
         favorites,
-        episodes,
-        year,
+        cast(episodes as int) as episodes,
+        cast(year as int) as year,
+        nullif(lower(trim(season)), '') as season,
+        nullif(lower(trim(source)), '') as source,
+        nullif(lower(trim(rating)), '') as rating,
+        nullif(lower(trim(demographics)), '') as demographics,
 
-        -- Atributos Varchar
-        trim(season) as season,
-        trim(source) as source,
-        trim(rating) as rating,
-        trim(demographics) as demographics,
-
-        -- Columnas Array/JSON (se mantienen como están para las dimensiones/relaciones)
-        trim(genres) as genres,
-        trim(themes) as themes,
-        trim(studios) as studios,
-        trim(producers) as producers,
-        trim(licensors) as licensors,
-        trim(streaming) as streaming,
-
-        -- URLs válidas (Snowflake/Data Warehouse SQL)
         case when url rlike '^https?://[^\s]+$' then url else null end as url,
         case when image_url rlike '^https?://[^\s]+$' then image_url else null end as image_url,
 
         synopsis,
-
-        -- Fechas
-        start_date,
-        end_date,
-
-        current_timestamp() as ingestion_ts -- Marca de tiempo para deduplicación/auditoría
-
-    from {{ source("anime_source", "DETAILS") }}
-),
-
--- Deduplicación: Si un anime_id aparece varias veces, tomamos el registro más reciente (último ingestion_ts)
-dedup as (
-    select
-        *,
-        row_number() over (partition by anime_id order by ingestion_ts desc) as rn
-    from details_clean
-),
-
-final_records as (
-    select
-        anime_id,
-        mal_id, -- Incluimos la clave natural
-        title,
-        title_japanese,
-        type,
-        status,
-        rank,
-        score,
-        scored_by,
-        popularity,
-        members,
-        favorites,
-        episodes,
-        year,
-        season,
-        source,
-        rating,
-        demographics,
-        genres,
-        themes,
-        studios,
-        producers,
-        licensors,
-        streaming,
-        url,
-        image_url,
-        synopsis,
-        start_date,
-        end_date,
+        cast(start_date as date) as start_date,
+        cast(end_date as date) as end_date,
         ingestion_ts
     from dedup
-    where rn = 1
 )
 
--- Lógica Incremental: Insertar solo nuevos animes que no existen en la tabla de destino (Anti-Join)
 select *
-from final_records f
+from details_clean
+
 {% if is_incremental() %}
-where not exists (
-    select 1
-    from {{ this }} t
-    where t.anime_id = f.anime_id
-)
+    where ingestion_ts > (select max(ingestion_ts) from {{ this }})
 {% endif %}

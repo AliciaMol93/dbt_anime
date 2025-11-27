@@ -1,6 +1,6 @@
-{% macro generate_surrogate_key(columns) %}
+{% macro surrogate_key(columns) %}
     {{
-        dbt_utils.surrogate_key(
+        dbt_utils.generate_surrogate_key( 
             columns | map("string") | map("trim") | map("lower")
         )
     }}
